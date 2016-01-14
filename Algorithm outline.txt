@@ -1,0 +1,10 @@
+Algorithm
+Starting with 1mile squares
+if we are above or below the equator
+divide latitude into 1 mile buckets, save the demarcation value into array
+find out what latitude bucket the user falls into
+Find out what the circumference is at that latitude
+figure out what each mile is in degrees longitude for a that circumference circumference
+divide 360 by value to get buckets. 
+
+hash the value you get to find what room user should be put into

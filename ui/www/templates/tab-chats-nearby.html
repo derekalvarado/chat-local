@@ -1,0 +1,12 @@
+<ion-view view-title="Nearby Chat Rooms">
+	<ion-content class="padding">
+		<div class="list" ng-repeat="room in rooms">
+			<a class="item item-thumbnail-left" href="#/tab/chats/{{room.id}}" >
+				<img ng-src="room.img">
+				<h2>{{room.title}}</h2>
+
+			</a>
+
+		</div>
+	</ion-content>
+</ion-view>

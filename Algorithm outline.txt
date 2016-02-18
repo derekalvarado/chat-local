@@ -8,3 +8,32 @@ figure out what each mile is in degrees longitude for a that circumference circu
 divide 360 by value to get buckets. 
 
 hash the value you get to find what room user should be put into
+
+
+SERVER-SIDE 
+//instantiate 50 namespaces, after US States
+
+IMPLEMENT API TO QUERY USER COUNT
+
+app.get('/getroom', function (req, res){
+	//from req, find long and lat
+	//hash the values using 1 mile radius to get a room,
+	//see if we have any connected users in that room
+	//if none, increase radius and re-hash
+	//continue until we return a room or radius >= 50mi
+	//if none in state, expand to country
+	//return to the fronend the namespace and room 
+});
+
+CLIENT-SIDE
+var getState = function (long, lat, io){
+	//call google with long,lat
+	//get state, 
+}
+
+SERVER-SIDE
+var getCity = function (long,lat) {
+	//call google with long, lat; get city
+	//using city as NS, check # of connected 
+	//users in NS
+}

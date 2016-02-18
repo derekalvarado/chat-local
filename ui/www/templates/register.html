@@ -1,0 +1,20 @@
+<ion-view hide-back-button="false" view-title="Sign Up">
+  <ion-content class="padding">
+
+    <!--TODO: Make this a good sign-up form-->
+    <h2>Sign Up</h2>
+    <ion-list>
+      <ion-item class="item-input">
+        <span class="input-label">Username</span>
+        <input type="text" ng-model="user.username">
+      </ion-item>
+      <ion-item class="item-input">
+        <span class="input-label">Password</span>
+        <input type="password" ng-model="user.password">
+      </ion-item>
+      <button class="button button-block button-dark" ng-click="validate()">Submit</button>
+      <a href="" ng-click="goAnonymous()">or, continue anonymous</a>
+
+    </ion-list>
+  </ion-content>
+</ion-view>

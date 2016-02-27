@@ -5,9 +5,9 @@
 // the 2nd parameter is an array of 'requires'
 // 'starter.services' is found in services.js
 // 'starter.controllers' is found in controllers.js
-angular.module('starter', ['ionic', 'starter.controllers', 'starter.services'])
+angular.module('starter', ['ionic', 'starter.controllers', 'LoginController', 'ChatsController', 'starter.services'])
 .constant('ApiEndPoint', {
-  url: "http://localhost:8100/ChatApi"
+  url: "https://credimus.ddns.net:4433/ChatApi"
 })
 .run(function($ionicPlatform) {
   $ionicPlatform.ready(function() {
@@ -46,7 +46,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services'])
     views: {
       'tab-dash': {
         templateUrl: 'templates/tab-dash.html',
-        controller: 'DashCtrl'
+        controller: 'DashController'
       }
     }
   })  
@@ -55,7 +55,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services'])
       views: {
         'tab-chats': {
           templateUrl: 'templates/tab-chats.html',
-          controller: 'ChatsCtrl'
+          controller: 'ChatsController'
         }
       }
   })
@@ -64,7 +64,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services'])
       views: {
         'tab-chats': {
           templateUrl: 'templates/login.html',
-          controller: 'LoginCtrl'
+          controller: 'LoginController'
           
         }
       }
@@ -74,7 +74,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services'])
       views: {
         'tab-chats': {
           templateUrl: 'templates/register.html',
-          controller: 'LoginCtrl'
+          controller: 'LoginController'
           
         }
       }
@@ -84,7 +84,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services'])
     views: {
       'tab-chats': {
         templateUrl: 'templates/chat-detail.html',
-        controller: 'ChatDetailCtrl'
+        controller: 'ChatDetailController'
       }
     }
   })
@@ -93,7 +93,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services'])
     views: {
       'tab-account': {
         templateUrl: 'templates/tab-account.html',
-        controller: 'AccountCtrl'
+        controller: 'AccountController'
       }
     }
   })
@@ -102,7 +102,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services'])
     views: {
       'tab-chats': {
         templateUrl: 'templates/login.html',
-        controller: 'LoginCtrl'
+        controller: 'LoginController'
       }
     }
   });

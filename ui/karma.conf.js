@@ -16,6 +16,7 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       'www/lib/ionic/js/ionic.bundle.js',
+      'www/lib/ionic/js/angular-ui-router.js',
       'www/lib/ionic/js/angular/angular-mocks.js',
       'www/js/*.js',
       'tests/*.js'
@@ -58,7 +59,7 @@ module.exports = function(config) {
 
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    browsers: ['PhantomJS', 'Chrome'],
+    browsers: ['PhantomJS'],
 
 
     // Continuous Integration mode

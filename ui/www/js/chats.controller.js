@@ -1,12 +1,12 @@
 
 angular.module('ChatsController', [])
-.controller('ChatsController', ['$scope','$state','$log','$ionicHistory','Chats','UserService','localStorageService', function(
+.controller('ChatsController', ['$scope','$state','$log','$ionicHistory','Chats','AuthService','localStorageService', function(
   $scope, 
   $state, 
   $log, 
   $ionicHistory, 
   Chats, 
-  UserService, 
+  AuthService, 
   localStorageService) {
   // With the new view caching in Ionic, Controllers are only called
   // when they are recreated or on app start, instead of every page change.
@@ -14,14 +14,14 @@ angular.module('ChatsController', [])
   // listen for the $ionicView.enter event:
   
 
-  var authData = UserService.authentication;
+  var authData = AuthService.authentication;
   $log.info(authData);
   $scope.$on('$ionicView.enter', function(e) {
-    //TODO: Replace these globals with local storage
+    
     
     if (!authData.isAuth & !authData.anonymous) {
       $log.info("Redirecting to login");
-      //$ionicHistory.nextViewOptions({disableBack:true});
+      $ionicHistory.nextViewOptions({disableBack:true});
       $state.go("tab.login");  
     } else {
       $scope.authData = localStorageService.get("authorizationData");
@@ -32,12 +32,12 @@ angular.module('ChatsController', [])
 
   $scope.postMessage = function(message) {
     $log.info("Message is ", message);
-    $log.info("User is ", user.name);
+    $log.info("User is ", AuthService.getUser());
     
     
     var chat = {
-      name: $scope.user.name,
-      face: $scope.user.img,
+      name: AuthService.getUser().name,
+      face: AuthService.getUser().face,
       lastText: message
     }
 

@@ -4,9 +4,10 @@ angular.module('LoginController', [])
   $state, 
   $log,
   $window, 
-  $ionicHistory, 
+  $ionicHistory,
+  $ionicPopup, 
   Chats, 
-  UserService,
+  AuthService,
   localStorageService) {
 
   $scope.user = {};
@@ -20,9 +21,15 @@ angular.module('LoginController', [])
     $state.go("tab.chats");
   };
 
+
+  $scope.$on('$ionicView.enter', function() {
+    $log.info("page entered");
+    if (localStorageService.get('locationApproved') !== true) {
+    }
+  })
   $scope.login = function(){
 
-    UserService.login($scope.loginData)
+    AuthService.login($scope.loginData)
       .then(function (response) {
         console.log("Success");
         $state.go("tab.chats");
@@ -36,13 +43,14 @@ angular.module('LoginController', [])
   }
 
   $scope.goAnonymous = function(){
-    var username = 'user';
+    var name = 'user';
     for (var i = 0; i < 5; i++) {
-      username += Math.floor(Math.random() * (10 - 0) + 0);
+      name += Math.floor(Math.random() * (10 - 0) + 0);
     }
 
-    var storedUsername = localStorageService.set('username', username);
-    UserService.authentication.anonymous = true;
+    var storedUsername = localStorageService.set('userName', name);
+    AuthService.setUser(name);
+    AuthService.authentication.anonymous = true;
     
     $ionicHistory.nextViewOptions({disableBack:true});
 

@@ -14,13 +14,20 @@
 
     <!-- ionic/angularjs js -->
     <script src="lib/ionic/js/ionic.bundle.js"></script>
+    
+    <!-- ngCordova NOTE: this must stay after ionic.bundle.js and before cordova.js-->
+    <script src="lib/ngCordova/dist/ng-cordova.min.js"></script>
+
 
     <!-- cordova script (this will be a 404 during development) -->
     <script src="cordova.js"></script>
 
     <!-- your app's js -->
-    <script src="js/socket.io-1.4.5.js"></script>
     
+    
+    
+
+    <script src="js/socket.io-1.4.5.js"></script>    
     <script src="js/app.js"></script>
     <script src="js/controllers.js"></script>
     <script src="js/chats.controller.js"></script>

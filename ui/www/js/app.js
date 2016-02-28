@@ -27,14 +27,17 @@ angular.module('starter', ['ionic', 'starter.controllers', 'LoginController', 'C
             }
 
             if (navigator.geolocation) {
-              navigator.geolocation.getCurrentPosition(function success(position) {
+              navigator.geolocation.getCurrentPosition(function success(location) {
                   console.log("Lat: %s, Lng: %s",
-                      position.coords.latitude,
-                      position.coords.longitude
+                      location.coords.latitude,
+                      location.coords.longitude
                   );
-                  console.log(position);
+                  var position = {};
+                  position.latitude = location.coords.latitude;
+                  position.longitude = location.coords.longitude;
+
                   localStorageService.remove('position');
-                  window.localStorage.setItem('position', JSON.stringify(position));
+                  localStorageService.setObject('position', position);
 
               },
               function error(err) {

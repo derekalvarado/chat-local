@@ -13,7 +13,6 @@ angular.module('ChatsController', [])
   // To listen for when this page is active (for example, to refresh data),
   // listen for the $ionicView.enter event:
   
-
   var authData = AuthService.authentication;
   $log.info(authData);
   $scope.$on('$ionicView.enter', function(e) {
@@ -26,8 +25,6 @@ angular.module('ChatsController', [])
     } else {
       $scope.authData = localStorageService.get("authorizationData");
     }
-    
-    
   });
 
   var socket = io.connect('https://chat-local-derekalvarado.c9users.io/');

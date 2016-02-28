@@ -43,18 +43,11 @@ angular.module('LoginController', [])
   }
 
   $scope.goAnonymous = function(){
-    var name = 'user';
-    for (var i = 0; i < 5; i++) {
-      name += Math.floor(Math.random() * (10 - 0) + 0);
-    }
+    var authentication = AuthService.goAnonymous();
 
-    var storedUsername = localStorageService.set('userName', name);
-    AuthService.setUser(name);
-    AuthService.authentication.anonymous = true;
-    
     $ionicHistory.nextViewOptions({disableBack:true});
 
     $state.go("tab.chats");
-    return storedUsername;
+    return authentication;
   }
 })

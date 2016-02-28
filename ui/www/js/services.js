@@ -44,7 +44,18 @@ angular.module('starter.services', [])
             face: ""
 
         },
+        goAnonymous: function() {
+          this.authentication.anonymous = true;
 
+          var name = 'user';
+          for (var i = 0; i < 5; i++) {
+            name += Math.floor(Math.random() * (10 - 0) + 0);
+          }
+
+          this.authentication.name = name;
+
+          return this.authentication;
+        },
         getUser: function() {
             return authentication.userName;
         },

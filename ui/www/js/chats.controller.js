@@ -30,18 +30,20 @@ angular.module('ChatsController', [])
     
   });
 
+  var socket = io.connect('https://chat-local-derekalvarado.c9users.io/');
+
   $scope.postMessage = function(message) {
-    $log.info("Message is ", message);
-    $log.info("User is ", AuthService.getUser());
-    
-    
+
     var chat = {
-      name: AuthService.getUser().name,
-      face: AuthService.getUser().face,
+      name: AuthService.authentication.name,
+      face: AuthService.authentication.face,
       lastText: message
     }
 
+    socket.emit('chat message', chat);
+
     Chats.add(chat);
+    $scope.message = "";
   };
   $scope.chats = Chats.all();
   $scope.remove = function(chat) {

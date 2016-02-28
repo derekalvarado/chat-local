@@ -19,7 +19,8 @@
           <input type="password" ng-model="user.passwordConfirm">
         </ion-item>
         <button class="button button-block button-dark" ng-disabled="user.password !== user.passwordConfirm" ng-click="validate()">Submit</button>
-        <a href="" ng-click="goAnonymous()">or, continue anonymous</a>
+        <button href="" class="button button-block button-light" ng-click="goAnonymous()">or, continue anonymous</button>
+        
 
       </ion-list>
     </form>

@@ -138,7 +138,7 @@ angular.module('starter.services', [])
     .factory('Chats', function() {
         "use strict";
         // Might use a resource here that returns a JSON array
-        io.connect()
+        io.connect('https://chat-local-derekalvarado.c9users.io/');
             // Some fake testing data
         var chats = [{
             id: 0,

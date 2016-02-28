@@ -9,8 +9,8 @@ angular.module('starter', ['ionic', 'starter.controllers', 'LoginController', 'C
     .constant('ApiEndPoint', {
         url: "https://credimus.ddns.net:4433/ChatApi"
     })
-    .constant('ApiEndPoint', {
-    url: "https://credimus.ddns.net:4433/ChatApi"
+    .constant('ChatEndPoint', {
+    url: "https://chat-local-derekalvarado.c9users.io/"
     })
     .run(function($ionicPlatform, $cordovaDevice, localStorageService, $ionicPopup) {
         $ionicPlatform.ready(function() {

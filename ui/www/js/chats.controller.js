@@ -1,35 +1,46 @@
 
 angular.module('ChatsController', [])
-.controller('ChatsController', ['$scope','$state','$log','$ionicHistory','Chats','AuthService','localStorageService', function(
+.controller('ChatsController', ['$scope','$state','$log','$ionicHistory','Chats','AuthService','localStorageService', 'ChatEndPoint', function(
   $scope, 
   $state, 
   $log, 
   $ionicHistory, 
   Chats, 
   AuthService, 
-  localStorageService) {
+  localStorageService,
+  ChatEndPoint) {
   // With the new view caching in Ionic, Controllers are only called
   // when they are recreated or on app start, instead of every page change.
   // To listen for when this page is active (for example, to refresh data),
   // listen for the $ionicView.enter event:
   
-  var authData = AuthService.authentication;
-  $log.info(authData);
-  $scope.$on('$ionicView.enter', function(e) {
+  var socket = socket = io.connect(ChatEndPoint.url);
+  $scope.$on('$ionicView.enter', function(e) {  
     
-    
-    if (!authData.isAuth & !authData.anonymous) {
+    if (!AuthService.authentication.isAuth & !AuthService.authentication.anonymous) {
       $log.info("Redirecting to login");
       $ionicHistory.nextViewOptions({disableBack:true});
       $state.go("tab.login");  
     } else {
-      $scope.authData = localStorageService.get("authorizationData");
+      console.log("Connecting socket to ", ChatEndPoint.url);
+      
     }
+    
   });
 
-  var socket = io.connect('https://chat-local-derekalvarado.c9users.io/');
+  socket.on('chat message', function(chat) {
+    console.log('Chat message received... ', chat);
+    Chats.add(chat);
+    $scope.chats = Chats.all();
+    $scope.$apply();
 
+  })
   $scope.postMessage = function(message) {
+
+    if (!socket) {
+      console.log("No socket present");
+      return;
+    }
 
     var chat = {
       name: AuthService.authentication.name,
@@ -37,11 +48,14 @@ angular.module('ChatsController', [])
       lastText: message
     }
 
+    console.log("Emitting message...");
     socket.emit('chat message', chat);
 
-    Chats.add(chat);
+    //Chats.add(chat);
     $scope.message = "";
   };
+
+
   $scope.chats = Chats.all();
   $scope.remove = function(chat) {
     Chats.remove(chat);

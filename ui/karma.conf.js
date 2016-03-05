@@ -1,5 +1,5 @@
 // Karma configuration
-// Generated on Mon Feb 15 2016 14:34:40 GMT-0600 (Central Standard Time)
+// Generated on Wed Mar 02 2016 22:57:55 GMT-0600 (Central Standard Time)
 
 module.exports = function(config) {
   config.set({
@@ -15,11 +15,13 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
+
       'www/lib/ionic/js/ionic.bundle.js',
-      'www/lib/ionic/js/angular-ui-router.js',
-      'www/lib/ionic/js/angular/angular-mocks.js',
+      'www/lib/ngCordova/dist/ng-cordova.min.js',
+      'www/lib/ngCordova/dist/ng-cordova-mocks.js',
+      'www/lib/angular/angular-mocks.js',
       'www/js/*.js',
-      'tests/*.js'
+      'spec/*.js'
     ],
 
 

@@ -5,55 +5,55 @@
 // the 2nd parameter is an array of 'requires'
 // 'starter.services' is found in services.js
 // 'starter.controllers' is found in controllers.js
-angular.module('starter', ['ionic', 'starter.controllers', 'LoginController', 'ChatsController', 'starter.services', 'ngCordova'])
-    .constant('ApiEndPoint', {
-        url: "https://credimus.ddns.net:4433/ChatApi"
-    })
-    .constant('ChatEndPoint', {
-    url: "https://chat-local-derekalvarado.c9users.io/"
-    })
-    .run(function($ionicPlatform, $cordovaDevice, localStorageService, $ionicPopup) {
-        $ionicPlatform.ready(function() {
-            // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
-            // for form inputs)
-            if (window.cordova && window.cordova.plugins && window.cordova.plugins.Keyboard) {
-                cordova.plugins.Keyboard.hideKeyboardAccessoryBar(false);
-                cordova.plugins.Keyboard.disableScroll(true);
+angular.module('starter', ['ionic', 'starter.controllers', 'LoginController', 'ChatsController', 'starter.services'])
+.constant('ApiEndPoint', {
+    url: "https://credimus.ddns.net:4433/ChatApi"
+})
+.constant('ChatEndPoint', {
+  url: "https://chat-local-derekalvarado.c9users.io/"
+})
+.run(function($ionicPlatform, localStorageService, $ionicPopup) {
+  $ionicPlatform.ready(function() {
+      // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
+      // for form inputs)
+      if (window.cordova && window.cordova.plugins && window.cordova.plugins.Keyboard) {
+          cordova.plugins.Keyboard.hideKeyboardAccessoryBar(false);
+          cordova.plugins.Keyboard.disableScroll(true);
 
-            }
-            if (window.StatusBar) {
-                // org.apache.cordova.statusbar required
-                StatusBar.styleDefault();
-            }
+      }
+      if (window.StatusBar) {
+          // org.apache.cordova.statusbar required
+          StatusBar.styleDefault();
+      }
 
-            if (navigator.geolocation) {
-              navigator.geolocation.getCurrentPosition(function success(location) {
-                  console.log("Lat: %s, Lng: %s",
-                      location.coords.latitude,
-                      location.coords.longitude
-                  );
-                  var position = {};
-                  position.latitude = location.coords.latitude;
-                  position.longitude = location.coords.longitude;
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function success(location) {
+            console.log("Lat: %s, Lng: %s",
+                location.coords.latitude,
+                location.coords.longitude
+            );
+            var position = {};
+            position.latitude = location.coords.latitude;
+            position.longitude = location.coords.longitude;
 
-                  localStorageService.remove('position');
-                  localStorageService.setObject('position', position);
+            localStorageService.remove('position');
+            localStorageService.setObject('position', position);
 
-              },
-              function error(err) {
+        },
+        function error(err) {
 
-                  $ionicPopup.show({
-                      template: '<p>This app uses your location to place you into nearby chatrooms. In order to use this app, grant permission to use your location.',
-                      title: "Location permission",
-                      buttons: [
-                          { text: 'Ok' },
-                      ]
-                  })
-              })
-            }
+            $ionicPopup.show({
+                template: '<p>This app uses your location to place you into nearby chatrooms. In order to use this app, grant permission to use your location.',
+                title: "Location permission",
+                buttons: [
+                    { text: 'Ok' },
+                ]
+            })
+        })
+      }
 
-        });
-    })
+  });
+})
 
 .config(function($stateProvider, $urlRouterProvider) {
 

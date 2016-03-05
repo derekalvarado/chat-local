@@ -38,19 +38,23 @@ angular.module('starter.services', [])
         this.authentication.anonymous = true;
 
         var name = 'user';
+        //create a long number for use in getting a gravatar from gravatar.com
+        var gravatarRandom = Math.floor(Math.random() * (999999999999999-100000000000000)) + 100000000000000;
+        console.log("gravatarRandom is ", gravatarRandom);
         for (var i = 0; i < 5; i++) {
           name += Math.floor(Math.random() * (10 - 0) + 0);
         }
 
         this.authentication.name = name;
 
+        this.authentication.face = "http://www.gravatar.com/avatar/"+gravatarRandom+"?d=identicon";
         return this.authentication;
       },
       getUser: function() {
           return authentication.userName;
       },
       login: function(loginData) {
-          //so nested functions can reference the return object
+          //so nested functions can reference the factory object
           var that = this;
           var data = 'grant_type=password&userName=' + encodeURIComponent(loginData.userName) + '&password=' + encodeURIComponent(loginData.password);
 

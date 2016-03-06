@@ -21,17 +21,20 @@
 
     <!-- cordova script (this will be a 404 during development) -->
     <script src="cordova.js"></script>
+    <script type="text/javascript" src="lib/lodash/dist/lodash.min.js"></script>
 
+    <script src="lib/angular-simple-logger/dist/angular-simple-logger.min.js"></script>
+    <script src='//maps.googleapis.com/maps/api/js?sensor=false'><!--Must come before angular-google-maps.min.js--></script>
+
+    <script type="text/javascript" src="lib/angular-google-maps/dist/angular-google-maps.min.js"></script>
     <!-- your app's js -->
-    
-    
-    
 
     <script src="js/socket.io-1.4.5.js"></script>    
     <script src="js/app.js"></script>
     <script src="js/controllers.js"></script>
     <script src="js/chats.controller.js"></script>
     <script src="js/login.controller.js"></script>
+    <script src="js/map.controller.js"></script>
     <script src="js/services.js"></script>
   </head>
   <body ng-app="starter">

@@ -5,7 +5,7 @@
 // the 2nd parameter is an array of 'requires'
 // 'starter.services' is found in services.js
 // 'starter.controllers' is found in controllers.js
-angular.module('starter', ['ionic', 'starter.controllers', 'LoginController', 'ChatsController', 'starter.services'])
+angular.module('starter', ['ionic', 'starter.controllers', 'LoginController', 'ChatsController', 'MapController', 'starter.services', 'uiGmapgoogle-maps'])
 .constant('ApiEndPoint', {
     url: "https://credimus.ddns.net:4433/ChatApi"
 })
@@ -35,6 +35,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'LoginController', 'C
             var position = {};
             position.latitude = location.coords.latitude;
             position.longitude = location.coords.longitude;
+
 
             localStorageService.remove('position');
             localStorageService.setObject('position', position);
@@ -71,12 +72,12 @@ angular.module('starter', ['ionic', 'starter.controllers', 'LoginController', 'C
     })
 
     // Each tab has its own nav history stack:
-    .state('tab.dash', {
-            url: '/dash',
+    .state('tab.map', {
+            url: '/map',
             views: {
-                'tab-dash': {
-                    templateUrl: 'templates/tab-dash.html',
-                    controller: 'DashController'
+                'tab-map': {
+                    templateUrl: 'templates/tab-map.html',
+                    controller: 'MapController'
                 }
             }
         })
@@ -128,6 +129,14 @@ angular.module('starter', ['ionic', 'starter.controllers', 'LoginController', 'C
         });
 
     // if none of the above states are matched, use this as the fallback
-    $urlRouterProvider.otherwise('/tab/dash');
+    $urlRouterProvider.otherwise('/tab/chat');
+})
+.config(function(uiGmapGoogleMapApiProvider) {
+  uiGmapGoogleMapApiProvider.configure({
+    key: 'AIzaSyAaMB7ShEHVuZtOeqY6aMXSH5EOA2aS48E',
+    v: '3.20',
+    libraries: 'geometry, visualization',
 
+
+  })
 })

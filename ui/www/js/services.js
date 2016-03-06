@@ -187,3 +187,8 @@ angular.module('starter.services', [])
         }
     };
 })
+.factory('googlemaps', ['', function(){
+  return {
+    none: "none"
+  };
+}])

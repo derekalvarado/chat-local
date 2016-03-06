@@ -6,14 +6,14 @@
 angular.module('MapController', [])
 .controller('MapController', ['localStorageService', '$scope',
     function(localStorageService, $scope) {
-        var position = JSON.parse(localStorageService.get('position'));
-        console.log("position is ", position);
+        $scope.position = JSON.parse(localStorageService.get('position')) || undefined;
+        console.log("Position is ", $scope.position);
         $scope.map = {
             center: {
-                latitude: position.latitude || 39.859001,
-                longitude: position.longitude || -97.906991
+                latitude: $scope.position.latitude || 39.859001,
+                longitude: $scope.position.longitude || -97.906991
             },
-            zoom: (position) ? 12 : 2
+            zoom: ($scope.position) ? 12 : 2
         }
 
 

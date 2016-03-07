@@ -1,0 +1,10 @@
+{
+  "name": "ui",
+  "app_id": "",
+  "proxies": [
+  {
+  	"path":"/ChatApi",
+  	"proxyUrl":"https://credimus.ddns.net:4433/ChatApi",
+  	"rejectUnauthorized":false
+  }]
+}

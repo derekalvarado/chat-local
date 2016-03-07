@@ -1,0 +1,6 @@
+curl -k -H "Content-Type: x-www-form-urlencoded" -X POST -d 'grant_type=password&username=33ssrj+c8q7mvme3cfsw@sharklasers.com&password=Password1!' https://credimus.ddns.net:4433/ChatApi/api/Account/Register
+
+curl -k -X POST -d '{"Grant_type":"password","Username":"33ssrj+c8q7mvme3cfsw@sharklasers.com","Password":"Password1!"}' https://credimus.ddns.net:4433/ChatApi/token
+
+grant_type=password&username=33ssrj+c8q7mvme3cfsw@sharklasers.com&password=Password1!
+grant_type=password&username=33ssrj%2Bc8q7mvme3cfsw%40sharklasers.com&password=Password1!

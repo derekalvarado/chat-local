@@ -24,7 +24,7 @@ angular.module('starter.services', [])
     };
 }])
 
-.factory('AuthService', ['$http', '$q', 'localStorageService', 'ApiEndPoint', function($http, $q, localStorageService, ApiEndPoint) {
+.factory('AuthService', ['$http', '$q', 'localStorageService', 'ApiEndPoint', '$rootScope', function($http, $q, localStorageService, ApiEndPoint, $rootScope) {
 
   return {
       authentication: {
@@ -48,6 +48,7 @@ angular.module('starter.services', [])
         this.authentication.name = name;
 
         this.authentication.face = "http://www.gravatar.com/avatar/"+gravatarRandom+"?d=identicon";
+        $rootScope.$emit('authentication updated');
         return this.authentication;
       },
       getUser: function() {

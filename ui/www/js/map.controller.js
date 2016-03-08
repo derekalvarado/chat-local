@@ -23,14 +23,14 @@ angular.module('MapController', [])
         }
 
         //Emitted from AuthService
-        $rootScope.$on('authentication updated', function() {
+        $scope.$on('$ionicView.enter', function() {
             console.log('Updating map options');
             $scope.user = Object.create(AuthService.authentication);
             $scope.options.icon = {}
-            $scope.options.icon.url = $scope.user.face;
+            $scope.options.icon.url = ($scope.user.face !== '') ? $scope.user.face : undefined;
             $scope.options.icon.scaledSize = new google.maps.Size(30,30,'px','px');
         });
 
 
     }
-])
+]);

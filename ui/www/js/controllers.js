@@ -1,5 +1,5 @@
 //Moved a lot of controllers out of here into their own <name>.controller.js file
-angular.module('starter.controllers', ['ChatsController', 'LoginController'])
+angular.module('starter.controllers', ['ChatsController', 'LoginController', 'MapController'])
 
 .controller('DashController', function($scope, $state) {
 

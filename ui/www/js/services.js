@@ -48,7 +48,8 @@ angular.module('starter.services', [])
         this.authentication.name = name;
 
         this.authentication.face = "http://www.gravatar.com/avatar/"+gravatarRandom+"?d=identicon";
-        $rootScope.$emit('authentication updated');
+        console.log("emitting");
+        $rootScope.$broadcast('authentication updated');
         return this.authentication;
       },
       getUser: function() {

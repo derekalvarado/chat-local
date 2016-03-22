@@ -1,0 +1,28 @@
+<ion-view view-title="Chats" hide-nav-bar="false">
+    <ion-footer-bar class="">
+        <form>
+            <div class="bar bar-footer item-input-inset">
+                <label class="item-input-wrapper">
+                    <i class="icon ion-ios-chatbubble-outline placeholder-icon"></i>
+                    <input type="text" placeholder="Enter chat..." ng-model="message">
+                </label>
+                <button class="button button-clear" ng-click="postMessage(message)">
+                    Submit
+                </button>
+            </div>
+        </form>
+    </ion-footer-bar>
+    <ion-content class="">
+        <ion-list>
+            <ion-item class="item-remove-animate item-avatar item-icon-right" ng-repeat="chat in chats" type="item-text-wrap" href="#/tab/chats/{{chat.id}}">
+                <img ng-src="{{chat.face}}">
+                <h2>{{chat.name}}</h2>
+                <p>{{chat.lastText}}</p>
+                <i class="icon ion-chevron-right icon-accessory"></i>
+                <ion-option-button class="button-assertive" ng-click="remove(chat)">
+                    Delete
+                </ion-option-button>
+            </ion-item>
+        </ion-list>
+    </ion-content>
+</ion-view>

@@ -1,0 +1,11 @@
+[{
+    "id": "string",
+    "name": "Room Name",
+    "users": 8
+
+},
+{
+    "id": "string",
+    "name": "Other Name",
+    "users": 7 
+}]

@@ -1,0 +1,10 @@
+<ion-view view-title="Rooms" hide-nav-bar="false">
+    <ion-footer-bar class="">
+    </ion-footer-bar>
+    <ion-content class="">
+        <div class="list card" ng-repeat="room in rooms" type="item-text-wrap" ng-click="goToRoom(room.Id.Pid)">
+            <a class="item item-divider">{{room.Name}}</a>
+            <a class="item item-text-wrap"><p>Connected users: {{room.UserCount}}</p></a>
+        </div>
+    </ion-content>
+</ion-view>

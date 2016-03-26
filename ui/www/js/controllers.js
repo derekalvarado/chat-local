@@ -112,7 +112,7 @@ angular.module('starter.controllers', [])
 
       $scope.$on('$ionicView.enter', function(e) {
         console.log($stateParams.roomId);
-        Chats.connect()
+        Chats.connect($stateParams.roomId);
       })
       $scope.chats;
       $scope.chats = Chats.all();
@@ -211,6 +211,8 @@ angular.module('starter.controllers', [])
         $scope.goToRoom = function(roomPid) {
 
             console.log("goToRoom hit; Pid is ", roomPid);
+            //$state.go('tab.room',{roomId: roomPid})
+
             Chats.create(roomPid).then(function() {
                 console.log("Chats.create finished");
                 $state.go('tab.room',{roomId: roomPid})

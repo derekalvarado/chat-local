@@ -10,7 +10,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
     url: "https://credimus.ddns.net:4433/ChatApi"
   })
   .constant('ChatEndPoint', {
-    url: "https://chat-local-derekalvarado.c9users.io/"
+    url: "http://192.168.0.123:3000/"
   })
   .run(function($ionicPlatform, localStorageService, $ionicPopup) {
     $ionicPlatform.ready(function() {

@@ -28,8 +28,9 @@ angular.module('starter.services', [])
         return {
             authentication: {
                 anonymous: false,
-                isAuth: false,
+                isAuth: false,                
                 userName: "",
+                token: "",
                 name: "",
                 face: ""
             },
@@ -57,27 +58,46 @@ angular.module('starter.services', [])
             login: function(loginData) {
                 //so nested functions can reference the factory object
                 var that = this;
-                var data = 'grant_type=password&userName=' + encodeURIComponent(loginData.userName) + '&password=' + encodeURIComponent(loginData.password);
-
+                var data = 'grant_type=password&username=' + encodeURIComponent(loginData.userName) + '&password=' + encodeURIComponent(loginData.password);
+                console.log(data);
                 var deferred = $q.defer();
+                var req = {
+                    method: 'POST',
+                    url: ApiEndPoint.url + '/token',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Accept': 'application/json',
+                    },
+                    transformRequest: function(obj) {
+                        var str = [];
+                        for (var p in obj)
+                            str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+                        return str.join("&");
+                    },
+                    data: {
+                        "grant_type": "password",
+                        "username": loginData.userName,
+                        "password": loginData.password
+                    }
+                };
 
-                $http.post(ApiEndPoint.url + '/token', data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } })
-                    .success(function(response) {
-                        localStorageService.set('authorizationData', { token: response.access_token, userName: loginData.userName });
+                $http(req).then(function(response) {
 
-                        that.authentication.isAuth = true;
-                        that.authentication.userName = loginData.userName;
+                    localStorageService.set('authData', response.data);
 
-                        deferred.resolve(response);
-                    }).error(function(err, status) {
-                        that.logOut();
-                        deferred.reject(err);
-                    })
+                    that.authentication.isAuth = true;
+                    that.authentication.userName = response.data.userName;
+
+                    deferred.resolve(response);
+                }, function(err, status) {
+                    that.logOut();
+                    deferred.reject(err);
+                });
 
                 return deferred.promise;
             },
             logOut: function() {
-                localStorageService.remove('authorizationData');
+                localStorageService.remove('authData');
 
                 this.authentication.isAuth = false;
                 this.authentication.userName = "";
@@ -113,10 +133,12 @@ angular.module('starter.services', [])
             }
         };
     }])
-    .factory('ApiService', ['ApiEndPoint', '$http', '$q', function(ApiEndPoint, $http, $q) {
+    .factory('ApiService', ['ApiEndPoint', 'AuthService', '$http', '$q', function(ApiEndPoint, AuthService, $http, $q) {
         return {
             //getRooms returns the promise from $http.get
             getRooms: function(latLongObj) {
+                //Hard code radius
+                latLongObj.Radius = 20000
                 var def = $q.defer();
                 var devRooms = {
                     data: [{
@@ -162,29 +184,49 @@ angular.module('starter.services', [])
                     }]
                 };
                 //For testing purposes, comment out for prod
-                if (devRooms) {
-                    setTimeout(function() {
-                        def.resolve(devRooms);
-                    }, 300);
+                // if (devRooms) {
+                //     setTimeout(function() {
+                //         def.resolve(devRooms);
+                //     }, 300);
 
-                    return def.promise;
-                }
+                //     return def.promise;
+                // }
 
-                var opts = {
-                    "headers": {
-                        "Accept": "application/json",
-                        "Content-Type": "application/json"
+                console.log(latLongObj);
+                
+                // Robert, here's where I set up the request for chat/rooms/list
+                var req = {
+                    method: 'POST',
+                    url: ApiEndPoint.url + '/api/Chat/Rooms/List',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        //The following line causes a pre-flight check
+                        'Authorization': 'Bearer '+AuthService.authentication.access_token,
+                    },
+                    transformRequest: function(obj) {
+                        var str = [];
+                        for (var p in obj)
+                            str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+                        return str.join("&");
+                    },
+                    data: {
+                        //Robert: data is hardcoded here for now. (@Palazio :)
+                        //Acutal data would come from localStorageService.getObject("position").<Longitude|Latitude>
+                        "Longitude":"-97.8535807999",
+                        "Latitude":"30.2328586",
+                        "Radius": "20000"
                     }
                 };
-
-                $http.post(ApiEndPoint.url + '/api/chat/getrooms', latLongObj, opts)
-                    .then(function(response) {
+                // Robert, here's where I try to send the request. 
+                $http(req).then(function(response) {
+                        console.log("Rooms List returned ", response.data);
                         def.resolve(response);
                     })
                     .then(null, function(err) {
                         def.reject(err);
                     });
-
+                //Robert, promise is returned to the caller in RoomSelectionController
+                //To be resolved when $http response comes back
                 return def.promise;
             }
 
@@ -241,13 +283,13 @@ angular.module('starter.services', [])
                 }
             },
             connect: function(roomPid) {
-              console.log("In Chats.connect: roomPid is ",roomPid);  
-              socket = io.connect(ChatEndPoint.url+roomPid);
-              socket.on('chat message', function(chat) {
-                  console.log('Chat message received... ', chat);
-                  chats.unshift(chat);
-                  $rootScope.$emit('chats updated');
-              })
+                console.log("In Chats.connect: roomPid is ", roomPid);
+                socket = io.connect(ChatEndPoint.url + roomPid);
+                socket.on('chat message', function(chat) {
+                    console.log('Chat message received... ', chat);
+                    chats.unshift(chat);
+                    $rootScope.$emit('chats updated');
+                })
             },
             remove: function(chat) {
                 chats.splice(chats.indexOf(chat), 1);

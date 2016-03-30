@@ -7,12 +7,12 @@
 // 'starter.controllers' is found in controllers.js
 angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', 'uiGmapgoogle-maps'])
   .constant('ApiEndPoint', {
-    url: "https://credimus.ddns.net:4433/ChatApi"
+    url: "https://104.14.157.161:4433/chat"
   })
   .constant('ChatEndPoint', {
     url: "http://192.168.0.123:3000/"
   })
-  .run(function($ionicPlatform, localStorageService, $ionicPopup) {
+  .run(function($ionicPlatform, AuthService, localStorageService, $ionicPopup) {
     $ionicPlatform.ready(function() {
       // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
       // for form inputs)
@@ -32,8 +32,8 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
               location.coords.longitude
             );
             var position = {};
-            position.latitude = location.coords.latitude;
-            position.longitude = location.coords.longitude;
+            position.Latitude = location.coords.latitude;
+            position.Longitude = location.coords.longitude;
 
 
             localStorageService.remove('position');
@@ -51,11 +51,31 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
             })
           })
       }
+      
+      //Get authData when app starts up
+      var authData = localStorageService.getObject('authData');      
+      console.log("authData is ",authData)
+      if (authData) {
+          var expiry = new Date(authData[".expires"])
+          var now = new Date(Date.now())
+          //If token hasn't expired yet
+          if (expiry > now) {
+              AuthService.authentication.isAuth = true;
+              AuthService.authentication.userName = authData.userName;
+              AuthService.authentication.access_token = authData.access_token;              
+          } else {
+              //console.log("Token expired, removing auth data");
+              //Remove all authData
+              AuthService.logOut();
+          }
+      }
+      
 
     });
   })
 
-.config(function($stateProvider, $urlRouterProvider) {
+.config(function($stateProvider, $urlRouterProvider, $httpProvider) {
+
 
     // Ionic uses AngularUI Router which uses the concept of states
     // Learn more here: https://github.com/angular-ui/ui-router

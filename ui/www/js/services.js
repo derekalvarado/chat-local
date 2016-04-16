@@ -27,8 +27,7 @@ angular.module('starter.services', [])
 
         return {
             authentication: {
-                anonymous: false,
-                isAuth: false,                
+                anonymous: false,           
                 userName: "",
                 token: "",
                 name: "",
@@ -59,7 +58,7 @@ angular.module('starter.services', [])
                 //so nested functions can reference the factory object
                 var that = this;
                 var data = 'grant_type=password&username=' + encodeURIComponent(loginData.userName) + '&password=' + encodeURIComponent(loginData.password);
-                console.log(data);
+                
                 var deferred = $q.defer();
                 var req = {
                     method: 'POST',
@@ -87,6 +86,7 @@ angular.module('starter.services', [])
 
                     that.authentication.isAuth = true;
                     that.authentication.userName = response.data.userName;
+                    that.authentication.access_token = response.data.access_token;
 
                     deferred.resolve(response);
                 }, function(err, status) {
@@ -98,9 +98,8 @@ angular.module('starter.services', [])
             },
             logOut: function() {
                 localStorageService.remove('authData');
-
-                this.authentication.isAuth = false;
-                this.authentication.userName = "";
+                this.authentication = {};
+                
             },
 
             register: function(registrationObj) {
@@ -134,11 +133,22 @@ angular.module('starter.services', [])
         };
     }])
     .factory('ApiService', ['ApiEndPoint', 'AuthService', '$http', '$q', function(ApiEndPoint, AuthService, $http, $q) {
+
+        var radiusMeters = 200;
         return {
+            getRadiusFeet: function() {
+                return radiusMeters * 3.28084;
+            },
+            setRadiusMeters: function(radiusFeet) {
+                //convert to meters
+                radiusMeters = radiusFeet * .3048;
+            },
+
             //getRooms returns the promise from $http.get
             getRooms: function(latLongObj) {
-                //Hard code radius
-                latLongObj.Radius = 20000
+                console.log("In get rooms");
+                
+                
                 var def = $q.defer();
                 var devRooms = {
                     data: [{
@@ -190,18 +200,14 @@ angular.module('starter.services', [])
                 //     }, 300);
 
                 //     return def.promise;
-                // }
-
-                console.log(latLongObj);
+                // }                
                 
-                // Robert, here's where I set up the request for chat/rooms/list
                 var req = {
                     method: 'POST',
                     url: ApiEndPoint.url + '/api/Chat/Rooms/List',
                     headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        //The following line causes a pre-flight check
                         'Authorization': 'Bearer '+AuthService.authentication.access_token,
+                        'Content-Type': 'application/x-www-form-urlencoded'                             
                     },
                     transformRequest: function(obj) {
                         var str = [];
@@ -210,14 +216,12 @@ angular.module('starter.services', [])
                         return str.join("&");
                     },
                     data: {
-                        //Robert: data is hardcoded here for now. (@Palazio :)
-                        //Acutal data would come from localStorageService.getObject("position").<Longitude|Latitude>
                         "Longitude":"-97.8535807999",
                         "Latitude":"30.2328586",
-                        "Radius": "20000"
+                        "Radius": radiusMeters
                     }
                 };
-                // Robert, here's where I try to send the request. 
+                
                 $http(req).then(function(response) {
                         console.log("Rooms List returned ", response.data);
                         def.resolve(response);
@@ -225,7 +229,7 @@ angular.module('starter.services', [])
                     .then(null, function(err) {
                         def.reject(err);
                     });
-                //Robert, promise is returned to the caller in RoomSelectionController
+                //Promise is returned to the caller in RoomSelectionController
                 //To be resolved when $http response comes back
                 return def.promise;
             }

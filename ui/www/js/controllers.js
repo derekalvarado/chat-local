@@ -178,7 +178,8 @@ angular.module('starter.controllers', [])
             localStorageService,
             ChatEndPoint) {
 
-            $scope.rooms = [{
+            $scope.rooms;
+            /*[{
                 "Topic": "Cars",
                 "Name": "Zoom Room",
                 "Location": {
@@ -218,29 +219,66 @@ angular.module('starter.controllers', [])
                     "Increment": 1234,
                     "CreationTime": "2009-06-15T13:45:30"
                 }
-            }];
+            }];*/
+            
+            var location;
+            
+            $scope.radius = ApiService.getRadiusFeet();
 
-            // With the new view caching in Ionic, Controllers are only called
-            // when they are recreated or on app start, instead of every page change.
-            // To listen for when this page is active (for example, to refresh data),
-            // listen for the $ionicView.enter event:
             $scope.$on('$ionicView.enter', function(e) {
 
                 //TODO: REMOVE THIS BEFORE PROD
                 //AuthService.authentication.anonymous = true;
 
-                if (!AuthService.authentication.isAuth & !AuthService.authentication.anonymous) {
+                //Make sure the users is logged in before proceeding
+                if (!AuthService.authentication.access_token & !AuthService.authentication.anonymous) {
                     $log.info("Redirecting to login");
                     $ionicHistory.nextViewOptions({
                         disableBack: true
                     });
                     $state.go("tab.login");
+                    
                 }
-                var position = localStorageService.getObject("position")
-                ApiService.getRooms(position).then(function(){
-                    console.log()
+
+                //Get position, catch errors
+                var position;
+                try {
+                    position = localStorageService.getObject("position");
+                    console.log("Got position: ",position);    
+                } catch (e) {
+                    $ionicPopup.show({
+                      template: '<p>This app uses your location to place you into nearby chatrooms. In order to use this app, grant permission to use your location.</p>',
+                      title: "Location not found",
+                      buttons: [
+                        { text: 'Ok' },
+                      ]
+                    })
+                }
+
+                
+                ApiService.getRooms(position).then(function(response){
+                    $scope.rooms = response.data;
                 }) 
             });
+            $scope.$on('$ionicView.loaded', function(e) {
+                console.log("Loaded event occurred");
+            });
+
+            var timeoutId;
+
+            $scope.onInputChange = function(radiusFeet) {
+                if (timeoutId) {
+                    window.clearTimeout(timeoutId)
+                };
+
+                timeoutId = setTimeout(function() {
+                    
+                    ApiService.setRadiusMeters(radiusFeet); 
+                    ApiService.getRooms(position).then(function(response) {
+                        $scope.rooms = response.data;
+                    }) ;
+                },333)                
+            }
 
             $scope.goToRoom = function(roomPid) {
                 //Call /create on socket server  
@@ -250,8 +288,6 @@ angular.module('starter.controllers', [])
                         roomId: roomPid
                     })
                 })
-
-
             }
         }
     ])
@@ -281,10 +317,10 @@ angular.module('starter.controllers', [])
                 $scope.options.icon.url = ($scope.user.face !== '') ? $scope.user.face : undefined;
                 $scope.options.icon.scaledSize = new google.maps.Size(30, 30, 'px', 'px');
             });
-
-
         }
     ])
-    .controller('AccountController', function($scope) {
-
-    });
+    .controller('AccountController', ['AuthService', '$scope', function(AuthService, $scope) {
+        $scope.logout = function() {
+            AuthService.logOut();
+        }
+    }]);

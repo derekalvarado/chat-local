@@ -10,7 +10,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
     url: "https://104.14.157.161:4433/chat"
   })
   .constant('ChatEndPoint', {
-    url: "http://192.168.0.123:3000/"
+    url: "https://chat-local-derekalvarado.c9users.io/"
   })
   .run(function($ionicPlatform, AuthService, localStorageService, $ionicPopup) {
     $ionicPlatform.ready(function() {
@@ -26,7 +26,8 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
       }
 
       if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function success(location) {
+        //watch the user's location
+        var watchID = navigator.geolocation.watchPosition(function success(location) {
             console.log("Lat: %s, Lng: %s",
               location.coords.latitude,
               location.coords.longitude
@@ -60,9 +61,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
           var now = new Date(Date.now())
           //If token hasn't expired yet
           if (expiry > now) {
-              AuthService.authentication.isAuth = true;
-              AuthService.authentication.userName = authData.userName;
-              AuthService.authentication.access_token = authData.access_token;              
+              AuthService.authentication = authData;
           } else {
               //console.log("Token expired, removing auth data");
               //Remove all authData

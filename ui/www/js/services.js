@@ -218,10 +218,10 @@ angular.module('starter.services', [])
                     data: {
                         "Longitude":"-97.8535807999",
                         "Latitude":"30.2328586",
-                        "Radius": radiusMeters
+                        "Radius": Math.floor(radiusMeters)
                     }
                 };
-                
+                console.log(req.data);
                 $http(req).then(function(response) {
                         console.log("Rooms List returned ", response.data);
                         def.resolve(response);

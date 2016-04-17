@@ -4,7 +4,7 @@
     <ion-content class="">
         <div class="item range">
           <i class="">100 ft</i>
-          <input type="range" min="50" max="264000" step="50" name="radius" ng-model="radius" ng-change="onInputChange(radius)"/>
+          <input type="range" min="100" max="264000" step="50" name="radius" ng-model="radius" ng-change="onInputChange(radius)"/>
           <i>50 mi</i>
         </div>    
         <div class="list card" ng-repeat="room in rooms" type="item-text-wrap" ng-click="goToRoom(room.Id.Pid)">

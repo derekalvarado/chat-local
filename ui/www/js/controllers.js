@@ -221,9 +221,9 @@ angular.module('starter.controllers', [])
                 }
             }];*/
             
-            var location;
+            var position;
             
-            $scope.radius = ApiService.getRadiusFeet();
+            $scope.radius;
 
             $scope.$on('$ionicView.enter', function(e) {
 
@@ -239,9 +239,10 @@ angular.module('starter.controllers', [])
                     $state.go("tab.login");
                     
                 }
+                //Get radius
+                $scope.radius = ApiService.getRadiusFeet()
 
-                //Get position, catch errors
-                var position;
+                //Get position, catch errors                
                 try {
                     position = localStorageService.getObject("position");
                     console.log("Got position: ",position);    
@@ -270,7 +271,7 @@ angular.module('starter.controllers', [])
                 if (timeoutId) {
                     window.clearTimeout(timeoutId)
                 };
-
+                ApiService.setRadiusMeters($scope.radius);
                 timeoutId = setTimeout(function() {
                     
                     ApiService.setRadiusMeters(radiusFeet); 

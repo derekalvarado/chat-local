@@ -5,7 +5,7 @@
  */
 
 var app = require('../app');
-var debug = 
+
 var http = require('http');
 
 

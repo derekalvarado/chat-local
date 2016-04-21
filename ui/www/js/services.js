@@ -194,13 +194,14 @@ angular.module('starter.services', [])
                     }]
                 };
                 //For testing purposes, comment out for prod
-                // if (devRooms) {
-                //     setTimeout(function() {
-                //         def.resolve(devRooms);
-                //     }, 300);
+                //if (devRooms) {
+                //    console.log("In dev mode: returning hard coded rooms")
+                //    setTimeout(function() {
+                //        def.resolve(devRooms);
+                //    }, 300);
 
-                //     return def.promise;
-                // }                
+                //    return def.promise;
+                //}                
                 
                 var req = {
                     method: 'POST',
@@ -243,7 +244,7 @@ angular.module('starter.services', [])
         var socket;
         var currentPid;
         // Some fake testing data
-        var chats = [{
+        var chats = [];/* = [{
             id: 0,
             name: 'Ben Sparrow',
             lastText: 'You on your way?',
@@ -268,7 +269,7 @@ angular.module('starter.services', [])
             name: 'Mike Harrington',
             lastText: 'This is wicked good ice cream.',
             face: 'img/mike.png'
-        }];
+        }];*/
 
         return {
             all: function() {
@@ -288,7 +289,19 @@ angular.module('starter.services', [])
             },
             connect: function(roomPid) {
                 console.log("In Chats.connect: roomPid is ", roomPid);
-                socket = io.connect(ChatEndPoint.url + roomPid);
+                console.log("socket is ",socket);
+                //dont reconnect to the same namespace
+                if (socket && socket.nsp.substring(1) == roomPid) {
+                    console.log("In Chats.connect: Socket already established");
+                    socket = socket;
+                } else {
+                    //Make new socket connection
+                    console.log("In Chats.connect: Making new socket connection");
+                    socket = io.connect(ChatEndPoint.url + roomPid);
+                    chats = [];    
+                    $rootScope.$emit('chats updated');
+                }
+                
                 socket.on('chat message', function(chat) {
                     console.log('Chat message received... ', chat);
                     chats.unshift(chat);

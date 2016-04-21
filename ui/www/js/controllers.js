@@ -127,10 +127,10 @@ angular.module('starter.controllers', [])
             $stateParams) {
 
             $scope.$on('$ionicView.enter', function(e) {
-                console.log($stateParams.roomId);
+                console.log("Entered RoomControler: room id is", $stateParams.roomId);
                 Chats.connect($stateParams.roomId);
             })
-            $scope.chats;
+            
             $scope.chats = Chats.all();
             $rootScope.$on('chats updated', function() {
                 console.log('RoomController: chats update event heard');
@@ -139,6 +139,7 @@ angular.module('starter.controllers', [])
             });
 
             $scope.postMessage = function(message) {
+                console.log("Called postMessage");
                 var chat = {
                     name: AuthService.authentication.name,
                     face: AuthService.authentication.face,
@@ -178,48 +179,7 @@ angular.module('starter.controllers', [])
             localStorageService,
             ChatEndPoint) {
 
-            $scope.rooms;
-            /*[{
-                "Topic": "Cars",
-                "Name": "Zoom Room",
-                "Location": {
-                    "Values": [1.234, 2.345],
-                    "Longitude": 25.34983,
-                    "Latitude": 33.09384,
-                    "Altitude": 678.88
-                },
-                "Radius": 4,
-                "IsPrivate": false,
-                "Users": [],
-                "UserCount": 8,
-                "Id": {
-                    "Timestamp": 1234,
-                    "Machine": 1234,
-                    "Pid": 1234,
-                    "Increment": 1234,
-                    "CreationTime": "2009-06-15T13:45:30"
-                }
-            }, {
-                "Topic": "SXSW",
-                "Name": "SXSW 2016",
-                "Location": {
-                    "Values": [1.234, 2.345],
-                    "Longitude": 25.34983,
-                    "Latitude": 33.09384,
-                    "Altitude": 678.88
-                },
-                "Radius": 4,
-                "IsPrivate": false,
-                "Users": [],
-                "UserCount": 8,
-                "Id": {
-                    "Timestamp": 1234,
-                    "Machine": 1234,
-                    "Pid": 5678,
-                    "Increment": 1234,
-                    "CreationTime": "2009-06-15T13:45:30"
-                }
-            }];*/
+            $scope.rooms = [];
             
             var position;
             
@@ -268,10 +228,11 @@ angular.module('starter.controllers', [])
             var timeoutId;
 
             $scope.onInputChange = function(radiusFeet) {
+                ApiService.setRadiusMeters($scope.radius);
                 if (timeoutId) {
                     window.clearTimeout(timeoutId)
                 };
-                ApiService.setRadiusMeters($scope.radius);
+                
                 timeoutId = setTimeout(function() {
                     
                     ApiService.setRadiusMeters(radiusFeet); 
@@ -282,13 +243,15 @@ angular.module('starter.controllers', [])
             }
 
             $scope.goToRoom = function(roomPid) {
-                //Call /create on socket server  
-                Chats.create(roomPid).then(function() {
-                    //console.log("Chats.create finished");
-                    $state.go('tab.room', {
+                console.log("Calling goToRoom with pid", roomPid);
+                $state.go('tab.room', {
                         roomId: roomPid
-                    })
                 })
+                //Call /create on socket server  
+                // Chats.create(roomPid).then(function() {
+                //     //console.log("Chats.create finished");
+                    
+                // })
             }
         }
     ])

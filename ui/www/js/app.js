@@ -10,7 +10,8 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
     url: "https://104.14.157.161:4433/chat"
   })
   .constant('ChatEndPoint', {
-    url: "https://chat-local-derekalvarado.c9users.io/"
+//    url: "https://chat-local-derekalvarado.c9users.io/"
+    url: "http://localhost:3001/"
   })
   .run(function($ionicPlatform, AuthService, localStorageService, $ionicPopup) {
     $ionicPlatform.ready(function() {

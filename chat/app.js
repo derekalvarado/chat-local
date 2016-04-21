@@ -7,10 +7,11 @@ var express       = require('express'),
     cookieParser  = require('cookie-parser'),
     bodyParser    = require('body-parser'),
     io            = require('socket.io')(),
+    
+    app           = express();
     routes        = require('./routes/index'),
     users         = require('./routes/users'),
     chat          = require('./routes/chat'),
-    app           = express();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -71,7 +72,7 @@ app.get('/',function(req, res){
   res.status(200).end("Up and running");
 });
 
-
+var pids = [];
 //Creates a room if it doesn't already exist
 app.get('/create', function(req, res, next) {
   if (!req.query.pid) {
@@ -107,13 +108,11 @@ app.get('/create', function(req, res, next) {
 
 
 
-app.use('/', routes);
-
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-    var err = new Error('Not Found');
-    err.status = 404;
-    next(err);
+  var err = new Error('Not Found');
+  err.status = 404;
+  next(err);
 });
 
 // error handlers

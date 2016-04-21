@@ -10,11 +10,11 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
     url: "https://104.14.157.161:4433/chat"
   })
   .constant('ChatEndPoint', {
-//    url: "https://chat-local-derekalvarado.c9users.io/"
+    //    url: "https://chat-local-derekalvarado.c9users.io/"
     url: "http://localhost:3001/"
   })
-  .run(function($ionicPlatform, AuthService, localStorageService, $ionicPopup) {
-    $ionicPlatform.ready(function() {
+  .run(function ($ionicPlatform, AuthService, localStorageService, $ionicPopup) {
+    $ionicPlatform.ready(function () {
       // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
       // for form inputs)
       if (window.cordova && window.cordova.plugins && window.cordova.plugins.Keyboard) {
@@ -29,19 +29,19 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
       if (navigator.geolocation) {
         //watch the user's location
         var watchID = navigator.geolocation.watchPosition(function success(location) {
-            console.log("Lat: %s, Lng: %s",
-              location.coords.latitude,
-              location.coords.longitude
-            );
-            var position = {};
-            position.Latitude = location.coords.latitude;
-            position.Longitude = location.coords.longitude;
+          console.log("Lat: %s, Lng: %s",
+            location.coords.latitude,
+            location.coords.longitude
+          );
+          var position = {};
+          position.Latitude = location.coords.latitude;
+          position.Longitude = location.coords.longitude;
 
 
-            localStorageService.remove('position');
-            localStorageService.setObject('position', position);
+          localStorageService.remove('position');
+          localStorageService.setObject('position', position);
 
-          },
+        },
           function error(err) {
 
             $ionicPopup.show({
@@ -53,28 +53,28 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
             })
           })
       }
-      
+
       //Get authData when app starts up
-      var authData = localStorageService.getObject('authData');      
-      console.log("authData is ",authData)
+      var authData = localStorageService.getObject('authData');
+      console.log("authData is ", authData)
       if (authData) {
-          var expiry = new Date(authData[".expires"])
-          var now = new Date(Date.now())
-          //If token hasn't expired yet
-          if (expiry > now) {
-              AuthService.authentication = authData;
-          } else {
-              //console.log("Token expired, removing auth data");
-              //Remove all authData
-              AuthService.logOut();
-          }
+        var expiry = new Date(authData[".expires"])
+        var now = new Date(Date.now())
+        //If token hasn't expired yet
+        if (expiry > now) {
+          AuthService.authentication = authData;
+        } else {
+          //console.log("Token expired, removing auth data");
+          //Remove all authData
+          AuthService.logOut();
+        }
       }
-      
+
 
     });
   })
 
-.config(function($stateProvider, $urlRouterProvider, $httpProvider) {
+  .config(function ($stateProvider, $urlRouterProvider, $httpProvider) {
 
 
     // Ionic uses AngularUI Router which uses the concept of states
@@ -83,15 +83,15 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
     // Each state's controller can be found in controllers.js
     $stateProvider
 
-    // setup an abstract state for the tabs directive
+      // setup an abstract state for the tabs directive
       .state('tab', {
-      url: '/tab',
-      abstract: true,
-      templateUrl: 'templates/tabs.html'
-    })
+        url: '/tab',
+        abstract: true,
+        templateUrl: 'templates/tabs.html'
+      })
 
-    // Each tab has its own nav history stack:
-    .state('tab.map', {
+      // Each tab has its own nav history stack:
+      .state('tab.map', {
         url: '/map',
         views: {
           'tab-map': {
@@ -170,7 +170,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
     // if none of the above states are matched, use this as the fallback
     $urlRouterProvider.otherwise('/tab/chats');
   })
-  .config(function(uiGmapGoogleMapApiProvider) {
+  .config(function (uiGmapGoogleMapApiProvider) {
     uiGmapGoogleMapApiProvider.configure({
       key: 'AIzaSyAaMB7ShEHVuZtOeqY6aMXSH5EOA2aS48E',
       v: '3.20',

@@ -185,23 +185,23 @@ angular.module('starter.services', [])
                         "Users": [],
                         "UserCount": 8,
                         "Id": {
-                            "Timestamp": 1234,
-                            "Machine": 1234,
-                            "Pid": 1234,
-                            "Increment": 1234,
+                            "Timestamp": 5678,
+                            "Machine": 5678,
+                            "Pid": 5678,
+                            "Increment": 5678,
                             "CreationTime": "2009-06-15T13:45:30"
                         }
                     }]
                 };
-                //For testing purposes, comment out for prod
-                //if (devRooms) {
-                //    console.log("In dev mode: returning hard coded rooms")
-                //    setTimeout(function() {
-                //        def.resolve(devRooms);
-                //    }, 300);
+                // //For testing purposes, comment out for prod
+                if (devRooms) {
+                    console.log("In dev mode: returning hard coded rooms")
+                    setTimeout(function() {
+                        def.resolve(devRooms);
+                    }, 300);
 
-                //    return def.promise;
-                //}                
+                    return def.promise;
+                }                
                 
                 var req = {
                     method: 'POST',
@@ -243,34 +243,8 @@ angular.module('starter.services', [])
         //TODO: Get this connecting to a Socket.io namespace/room
         var socket;
         var currentPid;
-        // Some fake testing data
-        var chats = [];/* = [{
-            id: 0,
-            name: 'Ben Sparrow',
-            lastText: 'You on your way?',
-            face: 'img/ben.png'
-        }, {
-            id: 1,
-            name: 'Max Lynx',
-            lastText: 'Hey, it\'s me',
-            face: 'img/max.png'
-        }, {
-            id: 2,
-            name: 'Adam Bradleyson',
-            lastText: 'I should buy a boat',
-            face: 'img/adam.jpg'
-        }, {
-            id: 3,
-            name: 'Perry Governor',
-            lastText: 'Look at my mukluks!',
-            face: 'img/perry.png'
-        }, {
-            id: 4,
-            name: 'Mike Harrington',
-            lastText: 'This is wicked good ice cream.',
-            face: 'img/mike.png'
-        }];*/
-
+        var chats;
+        
         return {
             all: function() {
                 return chats;
@@ -289,7 +263,7 @@ angular.module('starter.services', [])
             },
             connect: function(roomPid) {
                 console.log("In Chats.connect: roomPid is ", roomPid);
-                console.log("socket is ",socket);
+                
                 //dont reconnect to the same namespace
                 if (socket && socket.nsp.substring(1) == roomPid) {
                     console.log("In Chats.connect: Socket already established");
@@ -297,7 +271,9 @@ angular.module('starter.services', [])
                 } else {
                     //Make new socket connection
                     console.log("In Chats.connect: Making new socket connection");
+                    console.log("In Chats.connect: ChatEndPoint.url is ",ChatEndPoint.url);
                     socket = io.connect(ChatEndPoint.url + roomPid);
+                    console.log("In Chats.connect: socket is ", socket);
                     chats = [];    
                     $rootScope.$emit('chats updated');
                 }

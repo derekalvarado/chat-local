@@ -1,3 +1,4 @@
+/// <reference path="../../typings/tsd.d.ts" />
 // Ionic Starter App
 
 // angular.module is a global place for creating, registering and retrieving Angular modules
@@ -9,11 +10,13 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
   .constant('ApiEndPoint', {
     url: "https://104.14.157.161:4433/chat"
   })
+
   .constant('ChatEndPoint', {
     //    url: "https://chat-local-derekalvarado.c9users.io/"
-    url: "http://localhost:3001/"
+    url: "http://localhost:3000/"
   })
-  .run(function ($ionicPlatform, AuthService, localStorageService, $ionicPopup) {
+  .run(function ($ionicPlatform, AuthService, localStorageService, $ionicPopup, $rootScope, $ionicLoading) {
+
     $ionicPlatform.ready(function () {
       // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
       // for form inputs)
@@ -72,6 +75,27 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
 
 
     });
+    //Handle showing and hiding spinners for loading events
+    $rootScope.$on("loading:show", function () {
+      $ionicLoading.show({ template: '<ion-spinner icon="lines"></ion-spinner>' });
+    })
+    $rootScope.$on("loading:hide", function () {
+      $ionicLoading.hide();
+    })
+  })
+  .config(function ($httpProvider) {
+    $httpProvider.interceptors.push(function ($rootScope) {
+      return {
+        request: function (config) {
+          $rootScope.$broadcast("loading:show");
+          return config;
+        },
+        response: function (response) {
+          $rootScope.$broadcast("loading:hide");
+          return response;
+        }
+      }
+    })
   })
 
   .config(function ($stateProvider, $urlRouterProvider, $httpProvider) {

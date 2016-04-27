@@ -1,17 +1,17 @@
-var express       = require('express'),
-    debug         = require('debug')('projectx:server');
-    path          = require('path'),
-    favicon       = require('serve-favicon'),
-    http          = require('http'),
-    logger        = require('morgan'),
-    cookieParser  = require('cookie-parser'),
-    bodyParser    = require('body-parser'),
-    io            = require('socket.io')(),
-    
-    app           = express();
-    routes        = require('./routes/index'),
-    users         = require('./routes/users'),
-    chat          = require('./routes/chat'),
+var express = require('express'),
+  debug = require('debug')('projectx:server'),
+  path = require('path'),
+  favicon = require('serve-favicon'),
+  http = require('http'),
+  logger = require('morgan'),
+  cookieParser = require('cookie-parser'),
+  bodyParser = require('body-parser'),
+  io = require('socket.io')(),
+
+  app = express(),
+  routes = require('./routes/index'),
+  users = require('./routes/users'),
+  chat = require('./routes/chat');
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -48,7 +48,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(require('less-middleware')(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
@@ -58,23 +58,24 @@ app.use(function(req, res, next) {
 //Create a new io object of a given namespace,
 //listens for connections
 function createNewRoom(pid) {
-  var nsp = io.of('/'+pid);
-  nsp.on('connection', function(socket) {
-    console.log('someone connected to ',pid)
+  var nsp = io.of('/' + pid);
+  nsp.on('connection', function (socket) {
+    console.log('someone connected to ', pid)
 
-    socket.on('chat message', function(msg) {
+    socket.on('chat message', function (msg) {
+      console.log("received a message: ", msg);
       nsp.emit('chat message', msg);
     })
   })
 }
 
-app.get('/',function(req, res){
+app.get('/', function (req, res) {
   res.status(200).end("Up and running");
 });
 
 var pids = [];
 //Creates a room if it doesn't already exist
-app.get('/create', function(req, res, next) {
+app.get('/create', function (req, res, next) {
   if (!req.query.pid) {
     res.status(400).end("Missing query param 'pid'.");
   } else {
@@ -106,10 +107,8 @@ app.get('/create', function(req, res, next) {
   }
 })
 
-
-
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   var err = new Error('Not Found');
   err.status = 404;
   next(err);
@@ -120,24 +119,24 @@ app.use(function(req, res, next) {
 // development error handler
 // will print stacktrace
 if (app.get('env') === 'development') {
-    app.use(function(err, req, res, next) {
-        res.status(err.status || 500);
-        res.render('error', {
-            message: err.message,
+  app.use(function (err, req, res, next) {
+    res.status(err.status || 500);
+    res.render('error', {
+      message: err.message,
 
-            error: err
-        });
+      error: err
     });
+  });
 }
 
 // production error handler
 // no stacktraces leaked to user
-app.use(function(err, req, res, next) {
-    res.status(err.status || 500);
-    res.render('error', {
-        message: err.message,
-        error: {}
-    });
+app.use(function (err, req, res, next) {
+  res.status(err.status || 500);
+  res.render('error', {
+    message: err.message,
+    error: {}
+  });
 });
 
 

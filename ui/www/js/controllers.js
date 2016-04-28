@@ -44,7 +44,7 @@ angular.module('starter.controllers', [])
 
 
             $scope.login = function () {
-                
+
                 AuthService.login($scope.loginData)
                     .then(function (response) {
                         console.log("Success");
@@ -122,9 +122,9 @@ angular.module('starter.controllers', [])
             $stateParams) {
 
             $scope.$on('$ionicView.enter', function (e) {
-                console.log("Entered RoomController: room id is", $stateParams.id);
-                Chats.create($stateParams.id).then(
-                    Chats.connect($stateParams.id)
+                console.log("Entered RoomController: room roomId is", $stateParams.roomId);
+                Chats.create($stateParams.roomId).then(
+                    Chats.connect($stateParams.roomId)
                 )
 
             })
@@ -219,9 +219,7 @@ angular.module('starter.controllers', [])
                     $scope.rooms = response.data;
                 })
             });
-            $scope.$on('$ionicView.loaded', function (e) {
-                console.log("Loaded event occurred");
-            });
+
 
             //Call the API with new radius after the user is 
             //done moving the slider
@@ -242,10 +240,10 @@ angular.module('starter.controllers', [])
                 }, 333)
             }
 
-            $scope.goToRoom = function (id) {
-                console.log("Calling goToRoom with pid", id);
+            $scope.goToRoom = function (roomId) {
+                console.log("Calling goToRoom with pid", roomId);
                 $state.go('tab.room', {
-                    id: id
+                    roomId: roomId
                 })
             }
         }

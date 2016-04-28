@@ -122,9 +122,9 @@ angular.module('starter.controllers', [])
             $stateParams) {
 
             $scope.$on('$ionicView.enter', function (e) {
-                console.log("Entered RoomController: room id is", $stateParams.roomId);
-                Chats.create($stateParams.roomId).then(
-                    Chats.connect($stateParams.roomId)
+                console.log("Entered RoomController: room id is", $stateParams.id);
+                Chats.create($stateParams.id).then(
+                    Chats.connect($stateParams.id)
                 )
 
             })
@@ -137,7 +137,7 @@ angular.module('starter.controllers', [])
             });
 
             $scope.postMessage = function (message) {
-                console.log("Called postMessage");
+                console.log("In RoomController: Called postMessage");
                 var chat = {
                     name: AuthService.authentication.name,
                     face: AuthService.authentication.face,
@@ -242,10 +242,10 @@ angular.module('starter.controllers', [])
                 }, 333)
             }
 
-            $scope.goToRoom = function (roomPid) {
-                console.log("Calling goToRoom with pid", roomPid);
+            $scope.goToRoom = function (id) {
+                console.log("Calling goToRoom with pid", id);
                 $state.go('tab.room', {
-                    roomId: roomPid
+                    id: id
                 })
             }
         }

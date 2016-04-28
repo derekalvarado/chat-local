@@ -23,7 +23,7 @@ angular.module('starter.services', [])
             }
         };
     }])
-    .factory('AuthService', ['$http', '$q', 'localStorageService', 'ApiEndPoint', '$rootScope', function($http, $q, localStorageService, ApiEndPoint, $rootScope) {
+    .factory('AuthService', ['$http', '$q', 'localStorageService', 'Constants', '$rootScope', function($http, $q, localStorageService, Constants, $rootScope) {
 
         return {
             authentication: {
@@ -57,12 +57,12 @@ angular.module('starter.services', [])
             login: function(loginData) {
                 //so nested functions can reference the factory object
                 var that = this;
-                var data = 'grant_type=password&username=' + encodeURIComponent(loginData.userName) + '&password=' + encodeURIComponent(loginData.password);
+                //var data = 'grant_type=password&username=' + encodeURIComponent(loginData.userName) + '&password=' + encodeURIComponent(loginData.password);
                 
                 var deferred = $q.defer();
                 var req = {
                     method: 'POST',
-                    url: ApiEndPoint.url + '/token',
+                    url: Constants.ApiEndPoint + 'token',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
                         'Accept': 'application/json',
@@ -110,7 +110,7 @@ angular.module('starter.services', [])
                         "Content-Type": "application/json"
                     }
                 };
-                $http.post(ApiEndPoint.url + '/api/account/register', registrationObj, opts)
+                $http.post(Constants.ApiEndPoint + 'api/account/register', registrationObj, opts)
                     .success(function(data) {
                         deferred.resolve(data);
                     });
@@ -120,7 +120,7 @@ angular.module('starter.services', [])
             saveRegistration: function(registration) {
                 this.logOut();
 
-                return $http.post(ApiEndPoint.url + '/api/Account/Register', registration)
+                return $http.post(Constants.ApiEndPoint + 'api/Account/Register', registration)
                     .then(function(response) {
                         return response;
                     })
@@ -132,7 +132,7 @@ angular.module('starter.services', [])
             }
         };
     }])
-    .factory('ApiService', ['ApiEndPoint', 'AuthService', '$http', '$q', function(ApiEndPoint, AuthService, $http, $q) {
+    .factory('ApiService', ['Constants', 'AuthService', '$http', '$q', function(Constants, AuthService, $http, $q) {
 
         var radiusMeters = 200;
         return {
@@ -193,8 +193,8 @@ angular.module('starter.services', [])
                         }
                     }]
                 };
-                // //For testing purposes, comment out for prod
-                if (devRooms) {
+                //For testing purposes, 
+                if (Constants.Environment == "dev") {
                     console.log("In dev mode: returning hard coded rooms")
                     setTimeout(function() {
                         def.resolve(devRooms);
@@ -205,7 +205,7 @@ angular.module('starter.services', [])
                 
                 var req = {
                     method: 'POST',
-                    url: ApiEndPoint.url + '/api/Chat/Rooms/List',
+                    url: Constants.ApiEndPoint + 'api/Chat/Rooms/List',
                     headers: {
                         'Authorization': 'Bearer '+AuthService.authentication.access_token,
                         'Content-Type': 'application/x-www-form-urlencoded'                             
@@ -237,7 +237,7 @@ angular.module('starter.services', [])
 
         };
     }])
-    .factory('Chats', ['ChatEndPoint', '$http', '$q', '$rootScope', function(ChatEndPoint, $http, $q, $rootScope) {
+    .factory('Chats', ['Constants', '$http', '$q', '$rootScope', function(Constants, $http, $q, $rootScope) {
 
         // Might use a resource here that returns a JSON array
         //TODO: Get this connecting to a Socket.io namespace/room
@@ -249,30 +249,30 @@ angular.module('starter.services', [])
             all: function() {
                 return chats;
             },
-            create: function(roomPid) {
+            create: function(id) {
                 var that = this;
                 //Don't re-establish the connection to the same room
-                if (!currentPid || currentPid !== roomPid) {
-                    currentPid = roomPid;
+                if (!currentPid || currentPid !== id) {
+                    currentPid = id;
                     console.log("ChatService connecting...");
-                    return $http.get(ChatEndPoint.url + 'create?pid=' + roomPid)
+                    return $http.get(Constants.ChatEndPoint + 'create?pid=' + id)
                 } else {
-                    console.log("Chats.create: roomPid already created")
+                    console.log("Chats.create: id already created")
                     return $q.when(currentPid);
                 }
             },
-            connect: function(roomPid) {
-                console.log("In Chats.connect: roomPid is ", roomPid);
+            connect: function(id) {
+                console.log("In Chats.connect: id is ", id);
                 
                 //dont reconnect to the same namespace
-                if (socket && socket.nsp.substring(1) == roomPid) {
+                if (socket && socket.nsp.substring(1) == id) {
                     console.log("In Chats.connect: Socket already established");
                     socket = socket;
                 } else {
                     //Make new socket connection
                     console.log("In Chats.connect: Making new socket connection");
-                    console.log("In Chats.connect: ChatEndPoint.url is ",ChatEndPoint.url);
-                    socket = io.connect(ChatEndPoint.url + roomPid);
+                    console.log("In Chats.connect: Constants.ChatEndPoint is ",Constants.ChatEndPoint);
+                    socket = io.connect(Constants.ChatEndPoint + id);
                     console.log("In Chats.connect: socket is ", socket);
                     chats = [];    
                     $rootScope.$emit('chats updated');

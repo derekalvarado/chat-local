@@ -8,12 +8,17 @@
 // 'starter.controllers' is found in controllers.js
 angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', 'uiGmapgoogle-maps'])
   .constant('ApiEndPoint', {
-    url: "https://104.14.157.161:4433/chat"
+    url: "https://104.14.157.161:4433/chatapi"
   })
 
   .constant('ChatEndPoint', {
     //    url: "https://chat-local-derekalvarado.c9users.io/"
     url: "http://localhost:3000/"
+  })
+  .constant('Constants', {
+    ApiEndPoint: "https://104.14.157.161:4433/chatapi/",
+    ChatEndPoint: "https://chat-local-derekalvarado.c9users.io/",
+    Environment: "prod"
   })
   .run(function ($ionicPlatform, AuthService, localStorageService, $ionicPopup, $rootScope, $ionicLoading) {
 

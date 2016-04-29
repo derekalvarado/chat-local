@@ -217,8 +217,8 @@ angular.module('starter.services', [])
                         return str.join("&");
                     },
                     data: {
-                        "Longitude":"-97.8535807999",
-                        "Latitude":"30.2328586",
+                        "Longitude":latLongObj.Longitude,
+                        "Latitude":latLongObj.Latitude,
                         "Radius": Math.floor(radiusMeters)
                     }
                 };

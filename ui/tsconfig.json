@@ -1,0 +1,13 @@
+{
+  "compileOnSave": true,
+  "compilerOptions": {
+    "target": "es5",
+    "outFile": "www/js/app.js",
+    "sourceMap": true
+  },
+  "exclude": [
+    "www/lib",
+    "platforms"
+  ]
+
+}

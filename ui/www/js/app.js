@@ -189,11 +189,7 @@ angular.module('starter.controllers', [])
     .controller('RoomController', RoomController)
     .controller('RoomSelectionController', RoomSelectionController)
     .controller('MapController', MapController)
-    .controller('AccountController', ['AuthService', '$scope', function (AuthService, $scope) {
-        $scope.logout = function () {
-            AuthService.logOut();
-        };
-    }]);
+    .controller('AccountController', AccountController);
 LoginController.$inject = ['ApiEndPoint', '$scope', '$state', '$http', '$log', '$window', '$ionicHistory', '$ionicPopup', '$ionicLoading', '$q', 'Chats', 'ApiService', 'AuthService', 'localStorageService'];
 function LoginController(ApiEndPoint, $scope, $state, $http, $log, $window, $ionicHistory, $ionicPopup, $ionicLoading, $q, Chats, ApiService, AuthService, localStorageService) {
     $scope.user = {};
@@ -282,8 +278,8 @@ function RoomController(ChatEndPoint, AuthService, Chats, $rootScope, $scope, $s
         Chats.remove(chat);
     };
 }
-RoomSelectionController.$inject = ['$scope', '$state', '$log', '$ionicHistory', '$ionicPopup', 'Chats', 'ApiService', 'AuthService', 'localStorageService', 'ChatEndPoint'];
-function RoomSelectionController($scope, $state, $log, $ionicHistory, $ionicPopup, Chats, ApiService, AuthService, localStorageService, ChatEndPoint) {
+RoomSelectionController.$inject = ['$scope', '$state', '$log', '$ionicHistory', '$ionicPopup', 'Chats', 'ApiService', 'AuthService', 'localStorageService', 'PopupService', 'ChatEndPoint'];
+function RoomSelectionController($scope, $state, $log, $ionicHistory, $ionicPopup, Chats, ApiService, AuthService, localStorageService, PopupService, ChatEndPoint) {
     $scope.rooms = [];
     var position;
     $scope.radius;
@@ -320,13 +316,7 @@ function RoomSelectionController($scope, $state, $log, $ionicHistory, $ionicPopu
         }, function (err) {
             console.log(err);
             if (err.status == 401) {
-                $ionicPopup.show({
-                    template: '<p>You have been logged out. Please log in. </p>',
-                    title: "Location not found",
-                    buttons: [
-                        { text: 'Ok' },
-                    ]
-                });
+                PopupService.unauthorized();
             }
             $ionicHistory.nextViewOptions({
                 disableBack: true
@@ -376,6 +366,13 @@ function MapController(localStorageService, AuthService, $scope, $rootScope) {
         $scope.options.icon.url = ($scope.user.face !== '') ? $scope.user.face : undefined;
         $scope.options.icon.scaledSize = new google.maps.Size(30, 30, 'px', 'px');
     });
+}
+AccountController.$inject = ['AuthService', '$scope', 'PopupService'];
+function AccountController(AuthService, $scope, PopupService) {
+    $scope.logout = function () {
+        AuthService.logOut();
+        PopupService.logoutSuccess();
+    };
 }
 angular.module('starter.services', [])
     .factory('localStorageService', ['$window', function ($window) {
@@ -467,6 +464,7 @@ angular.module('starter.services', [])
             logOut: function () {
                 localStorageService.remove('authData');
                 this.authentication = {};
+                return true;
             },
             register: function (registrationObj) {
                 var deferred = $q.defer();
@@ -666,5 +664,31 @@ angular.module('starter.services', [])
         return {
             none: "none"
         };
-    }]);
+    }])
+    .factory('PopupService', PopupService);
+PopupService.$inject = ['$ionicPopup'];
+function PopupService($ionicPopup) {
+    return {
+        unauthorized: unauthorized,
+        logoutSuccess: logoutSuccess
+    };
+    function unauthorized() {
+        $ionicPopup.show({
+            template: '<p>You have been logged out. Please log in. </p>',
+            title: "Location not found",
+            buttons: [
+                { text: 'Ok' },
+            ]
+        });
+    }
+    function logoutSuccess() {
+        $ionicPopup.show({
+            template: '<p>Successfully logged out.</p>',
+            title: "Log Out",
+            buttons: [
+                { text: 'Ok' },
+            ]
+        });
+    }
+}
 //# sourceMappingURL=app.js.map

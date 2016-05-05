@@ -324,6 +324,15 @@ function PopupService($ionicPopup) {
         logoutSuccess: logoutSuccess
     }
 
+    function failedToConnect() {
+        $ionicPopup.show({
+            template: "<p>Couldn't connect to chat room.</p>",
+            title: "Error",
+            buttons: [
+                { text: 'Ok' },
+            ]
+        })
+    }
     function unauthorized() {
         $ionicPopup.show({
             template: '<p>You have been logged out. Please log in. </p>',
@@ -332,8 +341,8 @@ function PopupService($ionicPopup) {
                 { text: 'Ok' },
             ]
         })
-
     }
+
 
     function logoutSuccess() {
         $ionicPopup.show({

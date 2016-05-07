@@ -10,9 +10,9 @@
 angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', 'uiGmapgoogle-maps'])
 
   .constant('Constants', {
-    ApiEndPoint: "https://104.14.157.161:4433/chatapi/",
-    ChatEndPoint: "https://chat-local-derekalvarado.c9users.io/",
-    //ChatEndPoint: "http://localhost:3000",
+    ApiEndPoint: "http://credimus.ddns.net:8080/chatapi/",
+    //ChatEndPoint: "https://chat-local-derekalvarado.c9users.io/",
+    ChatEndPoint: "http://localhost:3000/",
     Environment: "prod"
   })
   .run(function ($ionicPlatform, AuthService, localStorageService, $ionicPopup, $rootScope, $ionicLoading) {
@@ -159,6 +159,9 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
       })
       .state('tab.room', {
         url: '/room/:roomId',
+        params: {
+          roomTitle: "Unknown Chat Room"
+        },
         views: {
           'tab-chats': {
             templateUrl: 'templates/tab-room.html',
@@ -196,7 +199,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
       });
 
     // if none of the above states are matched, use this as the fallback
-    $urlRouterProvider.otherwise('/tab/chats');
+    $urlRouterProvider.otherwise('/tab/rooms');
   })
   .config(function (uiGmapGoogleMapApiProvider) {
     uiGmapGoogleMapApiProvider.configure({

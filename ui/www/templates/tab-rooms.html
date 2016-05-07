@@ -10,8 +10,8 @@
 
         </div>
         <p class="padding">Radius: {{radius}}</p>
-        
-        <div class="list card" ng-repeat="room in rooms" type="item-text-wrap" ng-click="goToRoom(room.Id)">
+
+        <div class="list card" ng-repeat="room in rooms" type="item-text-wrap" ng-click="goToRoom(room.Id, room.Name)">
             <a class="item item-divider">{{room.Name}}</a>
             <a class="item item-text-wrap">
                 <p>Connected users: {{room.UserCount}}</p>

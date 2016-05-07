@@ -1,5 +1,9 @@
 <ion-view view-title="Chats" hide-nav-bar="false">
 
+    <ion-nav-bar>
+        <ion-nav-back-button>
+        </ion-nav-back-button>
+    </ion-nav-bar>
     <ion-content class="">
         <ion-list>
             <ion-item class="item-remove-animate item-avatar item-icon-right" ng-repeat="chat in chats" type="item-text-wrap" href="#/tab/chats/{{chat.id}}">

@@ -7,10 +7,10 @@ angular.module('starter.controllers', [])
     .controller('RoomController', RoomController)
     .controller('RoomSelectionController', RoomSelectionController)
     .controller('MapController', MapController)
-    .controller('AccountController', AccountController );
+    .controller('AccountController', AccountController);
 
-LoginController.$inject = ['ApiEndPoint', '$scope', '$state', '$http', '$log', '$window', '$ionicHistory', '$ionicPopup', '$ionicLoading', '$q', 'Chats', 'ApiService', 'AuthService', 'localStorageService'];
-function LoginController(ApiEndPoint, $scope, $state, $http, $log, $window, $ionicHistory, $ionicPopup, $ionicLoading, $q, Chats, ApiService, AuthService, localStorageService) {
+LoginController.$inject = ['$scope', '$state', '$http', '$log', '$window', '$ionicHistory', '$ionicPopup', '$ionicLoading', '$q', 'Chats', 'ApiService', 'AuthService', 'localStorageService'];
+function LoginController($scope, $state, $http, $log, $window, $ionicHistory, $ionicPopup, $ionicLoading, $q, Chats, ApiService, AuthService, localStorageService) {
 
     $scope.user = {};
     $scope.loginData = {};
@@ -82,33 +82,50 @@ function LoginController(ApiEndPoint, $scope, $state, $http, $log, $window, $ion
     }
 }
 
-RoomController.$inject = ['ChatEndPoint', 'AuthService', 'Chats', '$rootScope', '$scope', '$state', '$stateParams'];
-function RoomController(ChatEndPoint, AuthService, Chats, $rootScope, $scope, $state, $stateParams) {
+RoomController.$inject = ['AuthService', 'Chats', '$rootScope', '$scope', '$state', '$stateParams', '$ionicNavBarDelegate'];
+function RoomController(AuthService, Chats, $rootScope, $scope, $state, $stateParams, $ionicNavBarDelegate) {
 
+    $scope.chats = [];
+    var instance = 0;
     $scope.$on('$ionicView.enter', function (e) {
-        console.log("Entered RoomController: room roomId is", $stateParams.roomId);
-        Chats.create($stateParams.roomId).then(
-            Chats.connect($stateParams.roomId)
-        )
+        console.log("Entered RoomController: roomId is", $stateParams.roomId);
+        console.log("Entered RoomController: roomTitle is ", $stateParams.roomTitle);
+        $ionicNavBarDelegate.title($stateParams.roomTitle);
+
+        // if (socketManager["socket"]) {
+        //     console.log("RoomController: disconnecting and deleting old socket");
+        //     socketManager["socket"].disconnect();
+        //     delete socketManager["socket"];
+        // }
+        // Chats.connect($stateParams.roomId).then(function (socket) {
+        //     socketManager["socket"] = socket;
+        //     socketManager["socket"].on('chat message', function (chat) {
+        //         console.log('Chat message received... ', chat);
+        //         $scope.chats.unshift(chat);
+        //         $scope.$apply();
+        //     })
+        // })
+
+        Chats.connect($stateParams.roomId)
 
     })
 
-    $scope.chats = Chats.all();
-    $rootScope.$on('chats updated', function () {
-        console.log('RoomController: chats update event heard');
-        $scope.chats = Chats.all();
+    $rootScope.$on('chats updated', function (event, chats) {
+        console.log('RoomController: chats update event heard from instance ', instance);
+        console.log("RoomController: new data is ", chats);
+        $scope.chats = chats;
         $scope.$apply();
     });
 
     $scope.postMessage = function (message) {
-        console.log("In RoomController: Called postMessage");
+        console.log("In RoomController.postMessage");
         var chat = {
             name: AuthService.authentication.name,
             face: AuthService.authentication.face,
             lastText: message
         }
         try {
-            Chats.add(chat);
+            Chats.postMessage(chat);
         } catch (e) {
             console.log(e);
         }
@@ -120,13 +137,11 @@ function RoomController(ChatEndPoint, AuthService, Chats, $rootScope, $scope, $s
     };
 }
 
-RoomSelectionController.$inject = ['$scope', '$state', '$log', '$ionicHistory', '$ionicPopup', 'Chats', 'ApiService', 'AuthService', 'localStorageService', 'PopupService', 'ChatEndPoint'];
-function RoomSelectionController($scope, $state, $log, $ionicHistory, $ionicPopup, Chats, ApiService, AuthService, localStorageService, PopupService, ChatEndPoint) {
+RoomSelectionController.$inject = ['$scope', '$state', '$log', '$ionicHistory', '$ionicPopup', 'Chats', 'ApiService', 'AuthService', 'localStorageService', 'PopupService'];
+function RoomSelectionController($scope, $state, $log, $ionicHistory, $ionicPopup, Chats, ApiService, AuthService, localStorageService, PopupService) {
 
     $scope.rooms = [];
-
     var position;
-
     $scope.radius;
 
     $scope.$on('$ionicView.enter', function (e) {
@@ -176,7 +191,6 @@ function RoomSelectionController($scope, $state, $log, $ionicHistory, $ionicPopu
             })
     });
 
-
     //Call the API with new radius after the user is
     //done moving the slider
     var timeoutId;
@@ -196,10 +210,11 @@ function RoomSelectionController($scope, $state, $log, $ionicHistory, $ionicPopu
         }, 333)
     }
 
-    $scope.goToRoom = function (roomId) {
+    $scope.goToRoom = function (roomId, roomTitle) {
         console.log("Calling goToRoom with pid", roomId);
         $state.go('tab.room', {
-            roomId: roomId
+            roomId: roomId,
+            roomTitle: roomTitle
         })
     }
 }
@@ -232,8 +247,8 @@ function MapController(localStorageService, AuthService, $scope, $rootScope) {
 
 AccountController.$inject = ['AuthService', '$scope', 'PopupService']
 function AccountController(AuthService, $scope, PopupService) {
-        $scope.logout = function () {
-            AuthService.logOut();
-            PopupService.logoutSuccess();
-        }
+    $scope.logout = function () {
+        AuthService.logOut();
+        PopupService.logoutSuccess();
     }
+}

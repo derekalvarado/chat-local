@@ -3,11 +3,12 @@
   "compilerOptions": {
     "target": "es5",
     "outFile": "www/js/app.js",
-    "sourceMap": true
+    "sourceMap": true,
+    "watch": true
   },
-  "exclude": [
-    "www/lib",
-    "platforms"
+  "files": [
+    "www/src/app.ts",
+    "www/src/services.ts",
+    "www/src/controllers.ts"
   ]
-
 }

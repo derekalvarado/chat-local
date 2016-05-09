@@ -247,7 +247,7 @@ angular.module('starter.services', [])
         //TODO: Get this connecting to a Socket.io namespace/room
         var socket;
         var currentId = 0;
-        var chats = [];
+        var chats = {};
         var socketManager = {};
 
         return {
@@ -267,60 +267,57 @@ angular.module('starter.services', [])
             console.log("In Chats.connect: id is ", id);
 
             if (id != currentId) {
-                chats = [];
+
                 currentId = id;
             }
 
-
             if (socketManager[id] && socketManager[id]["connected"]) {
-                console.log("In Chats.create: socket already connected to correct namespace");
-                console.log("In Chats.create: socket is ", socketManager[id]);
+                console.log("In Chats.connect: socket already connected to correct namespace");
+                console.log("In Chats.connect: socket is ", socketManager[id]);
                 socket = socketManager[id];
-                $rootScope.$emit('chats updated', chats);
+                $rootScope.$emit(id, chats);
                 return $q.when(socket);
             } else {
-                console.log("In Chats.create: calling create on chat server");
-                $http.get(Constants.ChatEndPoint + 'create?pid=' + id)
-                    .then(function (response) {
-                        socketManager[id] = io.connect(Constants.ChatEndPoint + id);
-                        socket = socketManager[id];
-                        socketManager[id].on('chat message', function (chat) {
-                            console.log('CHAT SERVICE: Chat message received... ', chat);
-                            chats.unshift(chat);
-                            $rootScope.$emit('chats updated', chats);
 
-                        })
-                        console.log("In Chats.connect: socket is ", socket);
-                        def.resolve(socket);
-                    })
+                socket = io.connect(Constants.ChatEndPoint);
+                socket.emit("join", { room: id });
+                chats[id] = [];
+                socket.on("connect", function(){
+                    console.log("Socket fired connect event!")
+                    socketManager[id] = socket;
+                    def.resolve();
+                })
+                socket.on("chat message", function (data) {
+                    console.log('CHAT SERVICE: Chat message received... ', data);
+                    chats[data.room].unshift(data.chat);
+                    $rootScope.$emit(id, chats[id]);
+                })
+
+                // chats = [];
+                // $rootScope.$emit('chats updated', chats);
 
 
-                    //reset chats
-                    chats = [];
-                    $rootScope.$emit('chats updated', chats);
-
-                return def.promise;
             }
+            return def.promise;
         }
 
         function remove(chat) {
             chats.splice(chats.indexOf(chat), 1);
         }
 
-        function get(chatId) {
-            for (var i = 0; i < chats.length; i++) {
-                if (chats[i].id === parseInt(chatId)) {
-                    return chats[i];
-                }
-            }
-            return null;
+        function get(id) {
+
+            return chats[id];
         }
 
         function postMessage(chat) {
             if (socket) {
-                chat.id = chats.length + 1;
+
                 console.log("Chats: emitting message ", chat);
-                socket.emit('chat message', chat);
+                socket.emit('chat message', {
+                    room: currentId,
+                    chat: chat
+                });
             } else {
                 throw new Error("No socket connected");
             }

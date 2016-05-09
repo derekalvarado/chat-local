@@ -88,31 +88,20 @@ function RoomController(AuthService, Chats, $rootScope, $scope, $state, $statePa
     $scope.chats = [];
     var instance = 0;
     $scope.$on('$ionicView.enter', function (e) {
-        console.log("Entered RoomController: roomId is", $stateParams.roomId);
-        console.log("Entered RoomController: roomTitle is ", $stateParams.roomTitle);
+        // console.log("Entered RoomController: roomId is", $stateParams.roomId);
+        // console.log("Entered RoomController: roomTitle is ", $stateParams.roomTitle);
         $ionicNavBarDelegate.title($stateParams.roomTitle);
-
-        // if (socketManager["socket"]) {
-        //     console.log("RoomController: disconnecting and deleting old socket");
-        //     socketManager["socket"].disconnect();
-        //     delete socketManager["socket"];
-        // }
-        // Chats.connect($stateParams.roomId).then(function (socket) {
-        //     socketManager["socket"] = socket;
-        //     socketManager["socket"].on('chat message', function (chat) {
-        //         console.log('Chat message received... ', chat);
-        //         $scope.chats.unshift(chat);
-        //         $scope.$apply();
-        //     })
-        // })
-
         Chats.connect($stateParams.roomId)
-
+            // .then(function () {
+            //     $scope.chats =
+            // })
+        $scope.chats = Chats.get($stateParams.roomId);
     })
 
-    $rootScope.$on('chats updated', function (event, chats) {
-        console.log('RoomController: chats update event heard from instance ', instance);
-        console.log("RoomController: new data is ", chats);
+    $rootScope.$on($stateParams.roomId, function (event, chats) {
+        // console.log('RoomController: chats update event heard from instance ', instance);
+        // console.log("RoomController: new data is ", chats);
+
         $scope.chats = chats;
         $scope.$apply();
     });

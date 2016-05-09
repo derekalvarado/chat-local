@@ -6,16 +6,10 @@
 // 'starter.services' is found in services.js
 // 'starter.controllers' is found in controllers.js
 angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', 'uiGmapgoogle-maps'])
-    .constant('ApiEndPoint', {
-    url: "https://104.14.157.161:4433/chatapi"
-})
-    .constant('ChatEndPoint', {
-    //    url: "https://chat-local-derekalvarado.c9users.io/"
-    url: "http://localhost:3000/"
-})
     .constant('Constants', {
-    ApiEndPoint: "https://104.14.157.161:4433/chatapi/",
-    ChatEndPoint: "https://chat-local-derekalvarado.c9users.io/",
+    ApiEndPoint: "http://credimus.ddns.net:8080/chatapi/",
+    //ChatEndPoint: "https://chat-local-derekalvarado.c9users.io/",
+    ChatEndPoint: "http://localhost:3000/",
     Environment: "prod"
 })
     .run(function ($ionicPlatform, AuthService, localStorageService, $ionicPopup, $rootScope, $ionicLoading) {
@@ -137,6 +131,9 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
     })
         .state('tab.room', {
         url: '/room/:roomId',
+        params: {
+            roomTitle: "Unknown Chat Room"
+        },
         views: {
             'tab-chats': {
                 templateUrl: 'templates/tab-room.html',
@@ -172,7 +169,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
         }
     });
     // if none of the above states are matched, use this as the fallback
-    $urlRouterProvider.otherwise('/tab/chats');
+    $urlRouterProvider.otherwise('/tab/rooms');
 })
     .config(function (uiGmapGoogleMapApiProvider) {
     uiGmapGoogleMapApiProvider.configure({
@@ -181,199 +178,6 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
         libraries: 'geometry, visualization',
     });
 });
-angular.module('starter.controllers', [])
-    .controller('ChatDetailController', function ($scope, $stateParams, Chats) {
-    $scope.chat = Chats.get($stateParams.chatId);
-})
-    .controller('LoginController', LoginController)
-    .controller('RoomController', RoomController)
-    .controller('RoomSelectionController', RoomSelectionController)
-    .controller('MapController', MapController)
-    .controller('AccountController', AccountController);
-LoginController.$inject = ['ApiEndPoint', '$scope', '$state', '$http', '$log', '$window', '$ionicHistory', '$ionicPopup', '$ionicLoading', '$q', 'Chats', 'ApiService', 'AuthService', 'localStorageService'];
-function LoginController(ApiEndPoint, $scope, $state, $http, $log, $window, $ionicHistory, $ionicPopup, $ionicLoading, $q, Chats, ApiService, AuthService, localStorageService) {
-    $scope.user = {};
-    $scope.loginData = {};
-    $scope.rooms = undefined;
-    $scope.$on('$ionicView.enter', function () {
-        $log.info("page entered");
-        if (localStorageService.get('locationApproved') !== true) { }
-    });
-    $scope.login = function () {
-        AuthService.login($scope.loginData)
-            .then(function (response) {
-            console.log("Success");
-            $state.go("tab.chats");
-        }, function (err) {
-            $ionicLoading.hide();
-            $ionicPopup.show({
-                template: '<p>Sorry, there was an error contacting the server.</p>',
-                title: "Server Error",
-                buttons: [{
-                        text: 'Ok'
-                    },]
-            });
-        });
-    };
-    $scope.register = function () {
-        $scope.register = true;
-    };
-    //Allow user to continue anonymously
-    $scope.goAnonymous = function () {
-        var authentication = AuthService.goAnonymous();
-        $ionicHistory.nextViewOptions({
-            disableBack: true
-        });
-        return $state.go("tab.chats");
-    };
-    $scope.getRooms = function (position) {
-        //Returns the actual rooms object
-        var def = $q.defer();
-        ApiService.getRooms(position)
-            .then(function (response) {
-            console.log("LoginController: rooms is ", response.data);
-            def.resolve(response.data);
-        })
-            .then(null, function (err) {
-            $ionicPopup.show({
-                template: '<p>Sorry, there was an error contacting the server.</p>',
-                title: "Server Error",
-                buttons: [{
-                        text: 'Ok'
-                    },]
-            });
-            def.reject(err);
-        });
-        return def.promise;
-    };
-}
-RoomController.$inject = ['ChatEndPoint', 'AuthService', 'Chats', '$rootScope', '$scope', '$state', '$stateParams'];
-function RoomController(ChatEndPoint, AuthService, Chats, $rootScope, $scope, $state, $stateParams) {
-    $scope.$on('$ionicView.enter', function (e) {
-        console.log("Entered RoomController: room roomId is", $stateParams.roomId);
-        Chats.create($stateParams.roomId).then(Chats.connect($stateParams.roomId));
-    });
-    $scope.chats = Chats.all();
-    $rootScope.$on('chats updated', function () {
-        console.log('RoomController: chats update event heard');
-        $scope.chats = Chats.all();
-        $scope.$apply();
-    });
-    $scope.postMessage = function (message) {
-        console.log("In RoomController: Called postMessage");
-        var chat = {
-            name: AuthService.authentication.name,
-            face: AuthService.authentication.face,
-            lastText: message
-        };
-        try {
-            Chats.add(chat);
-        }
-        catch (e) {
-            console.log(e);
-        }
-        $scope.message = "";
-    };
-    $scope.remove = function (chat) {
-        Chats.remove(chat);
-    };
-}
-RoomSelectionController.$inject = ['$scope', '$state', '$log', '$ionicHistory', '$ionicPopup', 'Chats', 'ApiService', 'AuthService', 'localStorageService', 'PopupService', 'ChatEndPoint'];
-function RoomSelectionController($scope, $state, $log, $ionicHistory, $ionicPopup, Chats, ApiService, AuthService, localStorageService, PopupService, ChatEndPoint) {
-    $scope.rooms = [];
-    var position;
-    $scope.radius;
-    $scope.$on('$ionicView.enter', function (e) {
-        //TODO: REMOVE THIS BEFORE PROD
-        //AuthService.authentication.anonymous = true;
-        //Make sure the users is logged in before proceeding
-        if (!AuthService.authentication.access_token && !AuthService.authentication.anonymous) {
-            $log.info("Redirecting to login");
-            $ionicHistory.nextViewOptions({
-                disableBack: true
-            });
-            $state.go("tab.login");
-        }
-        //Get radius
-        $scope.radius = ApiService.getRadiusFeet();
-        //Get position, catch errors
-        try {
-            position = localStorageService.getObject("position");
-            console.log("Got position: ", position);
-        }
-        catch (e) {
-            $ionicPopup.show({
-                template: '<p>This app uses your location to place you into nearby chatrooms. In order to use this app, grant permission to use your location.</p>',
-                title: "Location not found",
-                buttons: [
-                    { text: 'Ok' },
-                ]
-            });
-        }
-        ApiService.getRooms(position)
-            .then(function (response) {
-            $scope.rooms = response.data;
-        }, function (err) {
-            console.log(err);
-            if (err.status == 401) {
-                PopupService.unauthorized();
-            }
-            $ionicHistory.nextViewOptions({
-                disableBack: true
-            });
-            $state.go("tab.login");
-        });
-    });
-    //Call the API with new radius after the user is
-    //done moving the slider
-    var timeoutId;
-    $scope.onInputChange = function (radiusFeet) {
-        ApiService.setRadiusMeters($scope.radius);
-        if (timeoutId) {
-            window.clearTimeout(timeoutId);
-        }
-        ;
-        timeoutId = setTimeout(function () {
-            ApiService.setRadiusMeters(radiusFeet);
-            ApiService.getRooms(position).then(function (response) {
-                $scope.rooms = response.data;
-            });
-        }, 333);
-    };
-    $scope.goToRoom = function (roomId) {
-        console.log("Calling goToRoom with pid", roomId);
-        $state.go('tab.room', {
-            roomId: roomId
-        });
-    };
-}
-MapController.$inject = ['localStorageService', 'AuthService', '$scope', '$rootScope'];
-function MapController(localStorageService, AuthService, $scope, $rootScope) {
-    $scope.user = Object.create(AuthService.authentication);
-    $scope.options = {};
-    $scope.$on('$ionicView.enter', function () {
-        var position = localStorageService.getObject('position') || undefined;
-        console.log('Updating map options');
-        $scope.map = {
-            center: {
-                latitude: position.Latitude || 39.859001,
-                longitude: position.Longitude || -97.906991
-            },
-            zoom: (position) ? 12 : 2
-        };
-        $scope.user = Object.create(AuthService.authentication);
-        $scope.options.icon = {};
-        $scope.options.icon.url = ($scope.user.face !== '') ? $scope.user.face : undefined;
-        $scope.options.icon.scaledSize = new google.maps.Size(30, 30, 'px', 'px');
-    });
-}
-AccountController.$inject = ['AuthService', '$scope', 'PopupService'];
-function AccountController(AuthService, $scope, PopupService) {
-    $scope.logout = function () {
-        AuthService.logOut();
-        PopupService.logoutSuccess();
-    };
-}
 angular.module('starter.services', [])
     .factory('localStorageService', ['$window', function ($window) {
         return {
@@ -597,68 +401,67 @@ angular.module('starter.services', [])
         // Might use a resource here that returns a JSON array
         //TODO: Get this connecting to a Socket.io namespace/room
         var socket;
-        var currentPid;
-        var chats;
+        var currentId = 0;
+        var chats = {};
+        var socketManager = {};
         return {
-            all: function () {
-                return chats;
-            },
-            create: function (id) {
-                var that = this;
-                //Don't re-establish the connection to the same room
-                if (!currentPid || currentPid !== id) {
-                    currentPid = id;
-                    console.log("ChatService connecting...");
-                    return $http.get(Constants.ChatEndPoint + 'create?pid=' + id);
-                }
-                else {
-                    console.log("Chats.create: id already created");
-                    return $q.when(currentPid);
-                }
-            },
-            connect: function (id) {
-                console.log("In Chats.connect: id is ", id);
-                //dont reconnect to the same namespace
-                if (socket && socket.nsp.substring(1) == id) {
-                    console.log("In Chats.connect: Socket already established");
-                    socket = socket;
-                }
-                else {
-                    //Make new socket connection
-                    console.log("In Chats.connect: Making new socket connection");
-                    console.log("In Chats.connect: Constants.ChatEndPoint is ", Constants.ChatEndPoint);
-                    socket = io.connect(Constants.ChatEndPoint + id);
-                    console.log("In Chats.connect: socket is ", socket);
-                    chats = [];
-                    $rootScope.$emit('chats updated');
-                }
-                socket.on('chat message', function (chat) {
-                    console.log('Chat message received... ', chat);
-                    chats.unshift(chat);
-                    $rootScope.$emit('chats updated');
-                });
-            },
-            remove: function (chat) {
-                chats.splice(chats.indexOf(chat), 1);
-            },
-            get: function (chatId) {
-                for (var i = 0; i < chats.length; i++) {
-                    if (chats[i].id === parseInt(chatId)) {
-                        return chats[i];
-                    }
-                }
-                return null;
-            },
-            add: function (chat) {
-                if (socket) {
-                    console.log("Chats: emitting message");
-                    socket.emit('chat message', chat);
-                }
-                else {
-                    throw new Error("No socket connected");
-                }
-            }
+            all: all,
+            connect: connect,
+            remove: remove,
+            get: get,
+            postMessage: postMessage
         };
+        function all() {
+            return chats;
+        }
+        function connect(id) {
+            var def = $q.defer();
+            console.log("In Chats.connect: id is ", id);
+            if (id != currentId) {
+                currentId = id;
+            }
+            if (socketManager[id] && socketManager[id]["connected"]) {
+                console.log("In Chats.connect: socket already connected to correct namespace");
+                console.log("In Chats.connect: socket is ", socketManager[id]);
+                socket = socketManager[id];
+                $rootScope.$emit(id, chats);
+                return $q.when(socket);
+            }
+            else {
+                socket = io.connect(Constants.ChatEndPoint);
+                socket.emit("join", { room: id });
+                chats[id] = [];
+                socket.on("connect", function () {
+                    console.log("Socket fired connect event!");
+                    socketManager[id] = socket;
+                    def.resolve();
+                });
+                socket.on("chat message", function (data) {
+                    console.log('CHAT SERVICE: Chat message received... ', data);
+                    chats[data.room].unshift(data.chat);
+                    $rootScope.$emit(id, chats[id]);
+                });
+            }
+            return def.promise;
+        }
+        function remove(chat) {
+            chats.splice(chats.indexOf(chat), 1);
+        }
+        function get(id) {
+            return chats[id];
+        }
+        function postMessage(chat) {
+            if (socket) {
+                console.log("Chats: emitting message ", chat);
+                socket.emit('chat message', {
+                    room: currentId,
+                    chat: chat
+                });
+            }
+            else {
+                throw new Error("No socket connected");
+            }
+        }
     }])
     .factory('googlemaps', ['', function () {
         return {
@@ -672,6 +475,15 @@ function PopupService($ionicPopup) {
         unauthorized: unauthorized,
         logoutSuccess: logoutSuccess
     };
+    function failedToConnect() {
+        $ionicPopup.show({
+            template: "<p>Couldn't connect to chat room.</p>",
+            title: "Error",
+            buttons: [
+                { text: 'Ok' },
+            ]
+        });
+    }
     function unauthorized() {
         $ionicPopup.show({
             template: '<p>You have been logged out. Please log in. </p>',
@@ -690,5 +502,207 @@ function PopupService($ionicPopup) {
             ]
         });
     }
+}
+angular.module('starter.controllers', [])
+    .controller('ChatDetailController', function ($scope, $stateParams, Chats) {
+    $scope.chat = Chats.get($stateParams.chatId);
+})
+    .controller('LoginController', LoginController)
+    .controller('RoomController', RoomController)
+    .controller('RoomSelectionController', RoomSelectionController)
+    .controller('MapController', MapController)
+    .controller('AccountController', AccountController);
+LoginController.$inject = ['$scope', '$state', '$http', '$log', '$window', '$ionicHistory', '$ionicPopup', '$ionicLoading', '$q', 'Chats', 'ApiService', 'AuthService', 'localStorageService'];
+function LoginController($scope, $state, $http, $log, $window, $ionicHistory, $ionicPopup, $ionicLoading, $q, Chats, ApiService, AuthService, localStorageService) {
+    $scope.user = {};
+    $scope.loginData = {};
+    $scope.rooms = undefined;
+    $scope.$on('$ionicView.enter', function () {
+        $log.info("page entered");
+        if (localStorageService.get('locationApproved') !== true) { }
+    });
+    $scope.login = function () {
+        AuthService.login($scope.loginData)
+            .then(function (response) {
+            console.log("Success");
+            $state.go("tab.chats");
+        }, function (err) {
+            $ionicLoading.hide();
+            $ionicPopup.show({
+                template: '<p>Sorry, there was an error contacting the server.</p>',
+                title: "Server Error",
+                buttons: [{
+                        text: 'Ok'
+                    },]
+            });
+        });
+    };
+    $scope.register = function () {
+        $scope.register = true;
+    };
+    //Allow user to continue anonymously
+    $scope.goAnonymous = function () {
+        var authentication = AuthService.goAnonymous();
+        $ionicHistory.nextViewOptions({
+            disableBack: true
+        });
+        return $state.go("tab.chats");
+    };
+    $scope.getRooms = function (position) {
+        //Returns the actual rooms object
+        var def = $q.defer();
+        ApiService.getRooms(position)
+            .then(function (response) {
+            console.log("LoginController: rooms is ", response.data);
+            def.resolve(response.data);
+        })
+            .then(null, function (err) {
+            $ionicPopup.show({
+                template: '<p>Sorry, there was an error contacting the server.</p>',
+                title: "Server Error",
+                buttons: [{
+                        text: 'Ok'
+                    },]
+            });
+            def.reject(err);
+        });
+        return def.promise;
+    };
+}
+RoomController.$inject = ['AuthService', 'Chats', '$rootScope', '$scope', '$state', '$stateParams', '$ionicNavBarDelegate'];
+function RoomController(AuthService, Chats, $rootScope, $scope, $state, $stateParams, $ionicNavBarDelegate) {
+    $scope.chats = [];
+    var instance = 0;
+    $scope.$on('$ionicView.enter', function (e) {
+        // console.log("Entered RoomController: roomId is", $stateParams.roomId);
+        // console.log("Entered RoomController: roomTitle is ", $stateParams.roomTitle);
+        $ionicNavBarDelegate.title($stateParams.roomTitle);
+        Chats.connect($stateParams.roomId);
+        // .then(function () {
+        //     $scope.chats =
+        // })
+        $scope.chats = Chats.get($stateParams.roomId);
+    });
+    $rootScope.$on($stateParams.roomId, function (event, chats) {
+        // console.log('RoomController: chats update event heard from instance ', instance);
+        // console.log("RoomController: new data is ", chats);
+        $scope.chats = chats;
+        $scope.$apply();
+    });
+    $scope.postMessage = function (message) {
+        console.log("In RoomController.postMessage");
+        var chat = {
+            name: AuthService.authentication.name,
+            face: AuthService.authentication.face,
+            lastText: message
+        };
+        try {
+            Chats.postMessage(chat);
+        }
+        catch (e) {
+            console.log(e);
+        }
+        $scope.message = "";
+    };
+    $scope.remove = function (chat) {
+        Chats.remove(chat);
+    };
+}
+RoomSelectionController.$inject = ['$scope', '$state', '$log', '$ionicHistory', '$ionicPopup', 'Chats', 'ApiService', 'AuthService', 'localStorageService', 'PopupService'];
+function RoomSelectionController($scope, $state, $log, $ionicHistory, $ionicPopup, Chats, ApiService, AuthService, localStorageService, PopupService) {
+    $scope.rooms = [];
+    var position;
+    $scope.radius;
+    $scope.$on('$ionicView.enter', function (e) {
+        //TODO: REMOVE THIS BEFORE PROD
+        //AuthService.authentication.anonymous = true;
+        //Make sure the users is logged in before proceeding
+        if (!AuthService.authentication.access_token && !AuthService.authentication.anonymous) {
+            $log.info("Redirecting to login");
+            $ionicHistory.nextViewOptions({
+                disableBack: true
+            });
+            $state.go("tab.login");
+        }
+        //Get radius
+        $scope.radius = ApiService.getRadiusFeet();
+        //Get position, catch errors
+        try {
+            position = localStorageService.getObject("position");
+            console.log("Got position: ", position);
+        }
+        catch (e) {
+            $ionicPopup.show({
+                template: '<p>This app uses your location to place you into nearby chatrooms. In order to use this app, grant permission to use your location.</p>',
+                title: "Location not found",
+                buttons: [
+                    { text: 'Ok' },
+                ]
+            });
+        }
+        ApiService.getRooms(position)
+            .then(function (response) {
+            $scope.rooms = response.data;
+        }, function (err) {
+            console.log(err);
+            if (err.status == 401) {
+                PopupService.unauthorized();
+            }
+            $ionicHistory.nextViewOptions({
+                disableBack: true
+            });
+            $state.go("tab.login");
+        });
+    });
+    //Call the API with new radius after the user is
+    //done moving the slider
+    var timeoutId;
+    $scope.onInputChange = function (radiusFeet) {
+        ApiService.setRadiusMeters($scope.radius);
+        if (timeoutId) {
+            window.clearTimeout(timeoutId);
+        }
+        ;
+        timeoutId = setTimeout(function () {
+            ApiService.setRadiusMeters(radiusFeet);
+            ApiService.getRooms(position).then(function (response) {
+                $scope.rooms = response.data;
+            });
+        }, 333);
+    };
+    $scope.goToRoom = function (roomId, roomTitle) {
+        console.log("Calling goToRoom with pid", roomId);
+        $state.go('tab.room', {
+            roomId: roomId,
+            roomTitle: roomTitle
+        });
+    };
+}
+MapController.$inject = ['localStorageService', 'AuthService', '$scope', '$rootScope'];
+function MapController(localStorageService, AuthService, $scope, $rootScope) {
+    $scope.user = Object.create(AuthService.authentication);
+    $scope.options = {};
+    $scope.$on('$ionicView.enter', function () {
+        var position = localStorageService.getObject('position') || undefined;
+        console.log('Updating map options');
+        $scope.map = {
+            center: {
+                latitude: position.Latitude || 39.859001,
+                longitude: position.Longitude || -97.906991
+            },
+            zoom: (position) ? 12 : 2
+        };
+        $scope.user = Object.create(AuthService.authentication);
+        $scope.options.icon = {};
+        $scope.options.icon.url = ($scope.user.face !== '') ? $scope.user.face : undefined;
+        $scope.options.icon.scaledSize = new google.maps.Size(30, 30, 'px', 'px');
+    });
+}
+AccountController.$inject = ['AuthService', '$scope', 'PopupService'];
+function AccountController(AuthService, $scope, PopupService) {
+    $scope.logout = function () {
+        AuthService.logOut();
+        PopupService.logoutSuccess();
+    };
 }
 //# sourceMappingURL=app.js.map

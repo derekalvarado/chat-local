@@ -5,14 +5,14 @@
 // the 2nd parameter is an array of 'requires'
 // 'starter.services' is found in services.js
 // 'starter.controllers' is found in controllers.js
-angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', 'uiGmapgoogle-maps'])
+angular.module('starter', ['ngCordova', 'ionic', 'starter.controllers', 'starter.services', 'uiGmapgoogle-maps'])
     .constant('Constants', {
     ApiEndPoint: "http://credimus.ddns.net:8080/chatapi/",
     //ChatEndPoint: "https://chat-local-derekalvarado.c9users.io/",
     ChatEndPoint: "http://localhost:3000/",
     Environment: "prod"
 })
-    .run(function ($ionicPlatform, AuthService, localStorageService, $ionicPopup, $rootScope, $ionicLoading) {
+    .run(function ($ionicPlatform, AuthService, localStorageService, PopupService, $rootScope, $ionicLoading) {
     $ionicPlatform.ready(function () {
         // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
         // for form inputs)
@@ -26,21 +26,15 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
         }
         if (navigator.geolocation) {
             //watch the user's location
+            var position = { latitude: null, longitude: null, altitude: null };
             var watchID = navigator.geolocation.watchPosition(function success(location) {
                 console.log("Lat: %s, Lng: %s", location.coords.latitude, location.coords.longitude);
-                var position;
-                position["Latitude"] = location.coords.latitude;
-                position["Longitude"] = location.coords.longitude;
-                localStorageService.remove('position');
+                position.latitude = location.coords.latitude;
+                position.longitude = location.coords.longitude;
+                position.altitude = location.coords.altitude;
                 localStorageService.setObject('position', position);
             }, function error(err) {
-                $ionicPopup.show({
-                    template: '<p>This app uses your location to place you into nearby chatrooms. In order to use this app, grant permission to use your location.</p>',
-                    title: "Location permission",
-                    buttons: [
-                        { text: 'Ok' },
-                    ]
-                });
+                PopupService.noGeoLocation();
             });
         }
         //Get authData when app starts up
@@ -49,6 +43,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
         if (authData) {
             var expiry = new Date(authData[".expires"]);
             var now = new Date(Date.now());
+            console.log("Expiry is %s, now is %s", expiry, now);
             //If token hasn't expired yet
             if (expiry > now) {
                 AuthService.authentication = authData;
@@ -156,6 +151,15 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
             'tab-account': {
                 templateUrl: 'templates/tab-account.html',
                 controller: 'AccountController'
+            }
+        }
+    })
+        .state('tab.camera', {
+        url: '/account/camera',
+        views: {
+            'tab-account': {
+                templateUrl: 'templates/camera.html',
+                controller: 'CameraController'
             }
         }
     })
@@ -297,105 +301,148 @@ angular.module('starter.services', [])
             }
         };
     }])
-    .factory('ApiService', ['Constants', 'AuthService', '$http', '$q', function (Constants, AuthService, $http, $q) {
+    .factory('RoomService', ['Constants', 'AuthService', 'localStorageService', '$http', '$q', function (Constants, AuthService, localStorageService, $http, $q) {
         var radiusMeters = 200;
+        var creationRadiusMeters = 200;
         return {
-            getRadiusFeet: function () {
-                return radiusMeters * 3.28084;
-            },
-            setRadiusMeters: function (radiusFeet) {
-                //convert to meters
-                radiusMeters = radiusFeet * .3048;
-            },
-            //getRooms returns the promise from $http.get
-            getRooms: function (latLongObj) {
-                console.log("In ApiService.getRooms");
-                var def = $q.defer();
-                var devRooms = {
-                    data: [{
-                            "Topic": "Cars",
-                            "Name": "Zoom Room",
-                            "Location": {
-                                "Values": [1.234, 2.345],
-                                "Longitude": 25.34983,
-                                "Latitude": 33.09384,
-                                "Altitude": 678.88
-                            },
-                            "Radius": 4,
-                            "IsPrivate": false,
-                            "Users": [],
-                            "UserCount": 8,
-                            "Id": {
-                                "Timestamp": 1234,
-                                "Machine": 1234,
-                                "Pid": 1234,
-                                "Increment": 1234,
-                                "CreationTime": "2009-06-15T13:45:30"
-                            }
-                        }, {
-                            "Topic": "SXSW",
-                            "Name": "SXSW 2016",
-                            "Location": {
-                                "Values": [1.234, 2.345],
-                                "Longitude": 25.34983,
-                                "Latitude": 33.09384,
-                                "Altitude": 678.88
-                            },
-                            "Radius": 4,
-                            "IsPrivate": false,
-                            "Users": [],
-                            "UserCount": 8,
-                            "Id": {
-                                "Timestamp": 5678,
-                                "Machine": 5678,
-                                "Pid": 5678,
-                                "Increment": 5678,
-                                "CreationTime": "2009-06-15T13:45:30"
-                            }
-                        }]
-                };
-                //For testing purposes,
-                if (Constants.Environment == "dev") {
-                    console.log("In dev mode: returning hard coded rooms");
-                    setTimeout(function () {
-                        def.resolve(devRooms);
-                    }, 300);
-                    return def.promise;
-                }
-                var req = {
-                    method: 'POST',
-                    url: Constants.ApiEndPoint + 'api/Chat/Rooms/List',
-                    headers: {
-                        'Authorization': 'Bearer ' + AuthService.authentication.access_token,
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    transformRequest: function (obj) {
-                        var str = [];
-                        for (var p in obj)
-                            str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
-                        return str.join("&");
-                    },
-                    data: {
-                        "Longitude": latLongObj.Longitude,
-                        "Latitude": latLongObj.Latitude,
-                        "Radius": Math.floor(radiusMeters)
-                    }
-                };
-                console.log(req.data);
-                $http(req).then(function (response) {
-                    console.log(response);
-                    console.log("Rooms List returned ", response.data);
-                    def.resolve(response);
-                })
-                    .then(null, function (err) {
-                    console.log(err);
-                    def.reject(err);
-                });
-                //Promise is returned to the caller in RoomSelectionController
-                //To be resolved when $http response comes back
+            createRoom: createRoom,
+            getRadiusFeet: getRadiusFeet,
+            getRadiusMeters: getRadiusMeters,
+            setRadiusMeters: setRadiusMeters,
+            getRooms: getRooms
+        };
+        function getRadiusFeet(radiusMeters) {
+            return radiusMeters * 3.28084;
+        }
+        function setRadiusMeters(radiusFeet) {
+            //convert to meters
+            radiusMeters = radiusFeet * .3048;
+        }
+        function getRadiusMeters(radiusFeet) {
+            //convert to meters
+            return radiusFeet * .3048;
+        }
+        //getRooms returns the promise from $http.get
+        function getRooms(latLongObj) {
+            console.log("In RoomService.getRooms");
+            var def = $q.defer();
+            var devRooms = {
+                data: [{
+                        "Topic": "Cars",
+                        "Name": "Zoom Room",
+                        "Location": {
+                            "Values": [1.234, 2.345],
+                            "Longitude": 25.34983,
+                            "Latitude": 33.09384,
+                            "Altitude": 678.88
+                        },
+                        "Radius": 4,
+                        "IsPrivate": false,
+                        "Users": [],
+                        "UserCount": 8,
+                        "Id": {
+                            "Timestamp": 1234,
+                            "Machine": 1234,
+                            "Pid": 1234,
+                            "Increment": 1234,
+                            "CreationTime": "2009-06-15T13:45:30"
+                        }
+                    }, {
+                        "Topic": "SXSW",
+                        "Name": "SXSW 2016",
+                        "Location": {
+                            "Values": [1.234, 2.345],
+                            "Longitude": 25.34983,
+                            "Latitude": 33.09384,
+                            "Altitude": 678.88
+                        },
+                        "Radius": 4,
+                        "IsPrivate": false,
+                        "Users": [],
+                        "UserCount": 8,
+                        "Id": {
+                            "Timestamp": 5678,
+                            "Machine": 5678,
+                            "Pid": 5678,
+                            "Increment": 5678,
+                            "CreationTime": "2009-06-15T13:45:30"
+                        }
+                    }]
+            };
+            //For testing purposes,
+            if (Constants.Environment == "dev") {
+                console.log("In dev mode: returning hard coded rooms");
+                setTimeout(function () {
+                    def.resolve(devRooms);
+                }, 300);
                 return def.promise;
             }
-        };
+            var req = {
+                method: 'POST',
+                url: Constants.ApiEndPoint + 'api/Chat/Rooms/List',
+                headers: {
+                    'Authorization': 'Bearer ' + AuthService.authentication.access_token,
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                transformRequest: function (obj) {
+                    var str = [];
+                    for (var p in obj)
+                        str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+                    return str.join("&");
+                },
+                data: {
+                    "Longitude": latLongObj.longitude,
+                    "Latitude": latLongObj.latitude,
+                    "Radius": Math.floor(radiusMeters)
+                }
+            };
+            console.log(req.data);
+            $http(req).then(function (response) {
+                console.log(response);
+                console.log("Rooms List returned ", response.data);
+                def.resolve(response);
+            })
+                .then(null, function (err) {
+                console.log(err);
+                def.reject(err);
+            });
+            //Promise is returned to the caller in RoomSelectionController
+            //To be resolved when $http response comes back
+            return def.promise;
+        }
+        function createRoom(roomCreationData) {
+            var position = localStorageService.getObject('position');
+            console.log("In RoomService.createRoom, position is ", position);
+            position.latitude = new Number(position.latitude).toPrecision(9);
+            position.longitude = new Number(position.longitude).toPrecision(9);
+            var deferred = $q.defer();
+            var req = {
+                method: 'POST',
+                url: Constants.ApiEndPoint + 'api/Chat/Rooms/Create',
+                headers: {
+                    'Authorization': 'Bearer ' + AuthService.authentication.access_token,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                data: {
+                    'Longitude': position.longitude,
+                    'Latitude': position.latitude,
+                    'Altitude': position.altitude,
+                    'Radius': roomCreationData.radius,
+                    'IsPrivate': false,
+                    'Name': roomCreationData.name,
+                    'Topic': roomCreationData.topic
+                }
+            };
+            $http(req).then(function (data) {
+                console.log(data);
+                deferred.resolve(data);
+            }, function (err) {
+                console.log(err);
+                deferred.resolve(err);
+            });
+            return deferred.promise;
+        }
     }])
     .factory('Chats', ['Constants', '$http', '$q', '$rootScope', function (Constants, $http, $q, $rootScope) {
         // Might use a resource here that returns a JSON array
@@ -444,8 +491,9 @@ angular.module('starter.services', [])
             }
             return def.promise;
         }
+        //This stopped working after I turned chats into an object
         function remove(chat) {
-            chats.splice(chats.indexOf(chat), 1);
+            //     chats.splice(chats.indexOf(chat), 1);
         }
         function get(id) {
             return chats[id];
@@ -472,15 +520,45 @@ angular.module('starter.services', [])
 PopupService.$inject = ['$ionicPopup'];
 function PopupService($ionicPopup) {
     return {
+        error: error,
         unauthorized: unauthorized,
-        logoutSuccess: logoutSuccess
+        noGeoLocation: noGeoLocation,
+        logoutSuccess: logoutSuccess,
+        success: success
     };
+    function error(err) {
+        $ionicPopup.show({
+            template: "<p>There was an error. </p><br>" + err.Message,
+            title: "Error",
+            buttons: [
+                { text: 'Ok' },
+            ]
+        });
+    }
     function failedToConnect() {
         $ionicPopup.show({
             template: "<p>Couldn't connect to chat room.</p>",
             title: "Error",
             buttons: [
                 { text: 'Ok' },
+            ]
+        });
+    }
+    function noGeoLocation() {
+        $ionicPopup.show({
+            template: '<p>This app uses your location to place you into nearby chatrooms. In order to use this app, grant permission to use your location.</p>',
+            title: "Location permission",
+            buttons: [
+                { text: 'Ok' },
+            ]
+        });
+    }
+    function success() {
+        $ionicPopup.show({
+            template: "<p>Your room has been created!</p>",
+            title: "Success!",
+            buttons: [
+                { text: 'Ok!' },
             ]
         });
     }
@@ -511,9 +589,10 @@ angular.module('starter.controllers', [])
     .controller('RoomController', RoomController)
     .controller('RoomSelectionController', RoomSelectionController)
     .controller('MapController', MapController)
-    .controller('AccountController', AccountController);
-LoginController.$inject = ['$scope', '$state', '$http', '$log', '$window', '$ionicHistory', '$ionicPopup', '$ionicLoading', '$q', 'Chats', 'ApiService', 'AuthService', 'localStorageService'];
-function LoginController($scope, $state, $http, $log, $window, $ionicHistory, $ionicPopup, $ionicLoading, $q, Chats, ApiService, AuthService, localStorageService) {
+    .controller('AccountController', AccountController)
+    .controller('CameraController', CameraController);
+LoginController.$inject = ['$scope', '$state', '$http', '$log', '$window', '$ionicHistory', '$ionicPopup', '$ionicLoading', '$q', 'Chats', 'RoomService', 'AuthService', 'localStorageService'];
+function LoginController($scope, $state, $http, $log, $window, $ionicHistory, $ionicPopup, $ionicLoading, $q, Chats, RoomService, AuthService, localStorageService) {
     $scope.user = {};
     $scope.loginData = {};
     $scope.rooms = undefined;
@@ -551,7 +630,7 @@ function LoginController($scope, $state, $http, $log, $window, $ionicHistory, $i
     $scope.getRooms = function (position) {
         //Returns the actual rooms object
         var def = $q.defer();
-        ApiService.getRooms(position)
+        RoomService.getRooms(position)
             .then(function (response) {
             console.log("LoginController: rooms is ", response.data);
             def.resolve(response.data);
@@ -608,11 +687,26 @@ function RoomController(AuthService, Chats, $rootScope, $scope, $state, $statePa
         Chats.remove(chat);
     };
 }
-RoomSelectionController.$inject = ['$scope', '$state', '$log', '$ionicHistory', '$ionicPopup', 'Chats', 'ApiService', 'AuthService', 'localStorageService', 'PopupService'];
-function RoomSelectionController($scope, $state, $log, $ionicHistory, $ionicPopup, Chats, ApiService, AuthService, localStorageService, PopupService) {
-    $scope.rooms = [];
+RoomSelectionController.$inject = ['$scope', '$state', '$log', '$ionicHistory', '$ionicModal', '$ionicPopup', 'Chats', 'RoomService', 'AuthService', 'localStorageService', 'PopupService'];
+function RoomSelectionController($scope, $state, $log, $ionicHistory, $ionicModal, $ionicPopup, Chats, RoomService, AuthService, localStorageService, PopupService) {
     var position;
-    $scope.radius;
+    $scope.rooms = [];
+    $scope.roomCreationData = {
+        radius: 250
+    };
+    $scope.searchRadius = 100;
+    $scope.creationRadiusFeet = 50;
+    $scope.createRoom = function (roomCreationData) {
+        console.log("In RoomSelectionController.createRoom, roomCreationData is ", roomCreationData);
+        RoomService.createRoom(roomCreationData)
+            .then(function (data) {
+            console.log("In RoomSelectionController, data came back is ", data);
+            PopupService.success();
+            $scope.closeModal();
+        }, function (err) {
+            PopupService.error(err);
+        });
+    };
     $scope.$on('$ionicView.enter', function (e) {
         //TODO: REMOVE THIS BEFORE PROD
         //AuthService.authentication.anonymous = true;
@@ -625,7 +719,7 @@ function RoomSelectionController($scope, $state, $log, $ionicHistory, $ionicPopu
             $state.go("tab.login");
         }
         //Get radius
-        $scope.radius = ApiService.getRadiusFeet();
+        $scope.radius = RoomService.getRadiusFeet();
         //Get position, catch errors
         try {
             position = localStorageService.getObject("position");
@@ -640,7 +734,7 @@ function RoomSelectionController($scope, $state, $log, $ionicHistory, $ionicPopu
                 ]
             });
         }
-        ApiService.getRooms(position)
+        RoomService.getRooms(position)
             .then(function (response) {
             $scope.rooms = response.data;
         }, function (err) {
@@ -657,18 +751,22 @@ function RoomSelectionController($scope, $state, $log, $ionicHistory, $ionicPopu
     //Call the API with new radius after the user is
     //done moving the slider
     var timeoutId;
-    $scope.onInputChange = function (radiusFeet) {
-        ApiService.setRadiusMeters($scope.radius);
+    $scope.onInputChange = function (searchRadius) {
+        //Timeout stuff is to manage number of calls to server
+        //If not for this, every incremental change in slider would call service
         if (timeoutId) {
             window.clearTimeout(timeoutId);
         }
         ;
         timeoutId = setTimeout(function () {
-            ApiService.setRadiusMeters(radiusFeet);
-            ApiService.getRooms(position).then(function (response) {
+            RoomService.setRadiusMeters(searchRadius);
+            RoomService.getRooms(position).then(function (response) {
                 $scope.rooms = response.data;
             });
         }, 333);
+    };
+    $scope.onRoomCreationRadius = function (creationRadiusFeet) {
+        $scope.roomCreationData.radius = creationRadiusFeet * .3048;
     };
     $scope.goToRoom = function (roomId, roomTitle) {
         console.log("Calling goToRoom with pid", roomId);
@@ -677,6 +775,30 @@ function RoomSelectionController($scope, $state, $log, $ionicHistory, $ionicPopu
             roomTitle: roomTitle
         });
     };
+    $ionicModal.fromTemplateUrl('add-room-modal.html', {
+        scope: $scope,
+        animation: 'slide-in-up'
+    }).then(function (modal) {
+        $scope.modal = modal;
+    });
+    $scope.openModal = function () {
+        $scope.modal.show();
+    };
+    $scope.closeModal = function () {
+        $scope.modal.hide();
+    };
+    // Cleanup the modal when we're done with it!
+    $scope.$on('$destroy', function () {
+        $scope.modal.remove();
+    });
+    // Execute action on hide modal
+    $scope.$on('modal.hidden', function () {
+        // Execute action
+    });
+    // Execute action on remove modal
+    $scope.$on('modal.removed', function () {
+        // Execute action
+    });
 }
 MapController.$inject = ['localStorageService', 'AuthService', '$scope', '$rootScope'];
 function MapController(localStorageService, AuthService, $scope, $rootScope) {
@@ -687,8 +809,8 @@ function MapController(localStorageService, AuthService, $scope, $rootScope) {
         console.log('Updating map options');
         $scope.map = {
             center: {
-                latitude: position.Latitude || 39.859001,
-                longitude: position.Longitude || -97.906991
+                latitude: position.latitude || 39.859001,
+                longitude: position.longitude || -97.906991
             },
             zoom: (position) ? 12 : 2
         };
@@ -703,6 +825,28 @@ function AccountController(AuthService, $scope, PopupService) {
     $scope.logout = function () {
         AuthService.logOut();
         PopupService.logoutSuccess();
+    };
+}
+CameraController.$inject = ['$cordovaCamera', '$scope'];
+function CameraController($cordovaCamera, $scope) {
+    $scope.takePicture = function () {
+        var options = {
+            quality: 75,
+            destinationType: Camera.DestinationType.DATA_URL,
+            sourceType: Camera.PictureSourceType.CAMERA,
+            allowEdit: true,
+            encodingType: Camera.EncodingType.JPEG,
+            targetWidth: 300,
+            targetHeight: 300,
+            //popoverOptions: CameraPopoverOptions,
+            saveToPhotoAlbum: false
+        };
+        console.log("taking picture");
+        $cordovaCamera.getPicture(options).then(function (imageData) {
+            $scope.imgSrc = "data:image/jpag;base64," + imageData;
+        }, function (err) {
+            alert("An error occured: " + err);
+        });
     };
 }
 //# sourceMappingURL=app.js.map

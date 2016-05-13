@@ -7,7 +7,7 @@
 // the 2nd parameter is an array of 'requires'
 // 'starter.services' is found in services.js
 // 'starter.controllers' is found in controllers.js
-angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', 'uiGmapgoogle-maps'])
+angular.module('starter', ['ngCordova', 'ionic', 'starter.controllers', 'starter.services', 'uiGmapgoogle-maps'])
 
   .constant('Constants', {
     ApiEndPoint: "http://credimus.ddns.net:8080/chatapi/",
@@ -15,13 +15,12 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
     ChatEndPoint: "http://localhost:3000/",
     Environment: "prod"
   })
-  .run(function ($ionicPlatform, AuthService, localStorageService, $ionicPopup, $rootScope, $ionicLoading) {
+  .run(function ($ionicPlatform, AuthService, localStorageService, PopupService, $rootScope, $ionicLoading) {
 
     $ionicPlatform.ready(function () {
       // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
       // for form inputs)
       if (window.cordova && window.cordova.plugins && window.cordova.plugins.Keyboard) {
-
         cordova.plugins.Keyboard.hideKeyboardAccessoryBar(false);
         cordova.plugins.Keyboard.disableScroll(true);
       }
@@ -29,9 +28,9 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
         // org.apache.cordova.statusbar required
         StatusBar.styleDefault();
       }
-
       if (navigator.geolocation) {
         //watch the user's location
+        var position = { latitude: null, longitude: null, altitude: null };
         var watchID = navigator.geolocation.watchPosition(function success(location) {
           console.log("Lat: %s, Lng: %s",
             location.coords.latitude,
@@ -39,25 +38,14 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
           );
 
 
-          var position: {};
 
-          position["Latitude"] = location.coords.latitude;
-          position["Longitude"] = location.coords.longitude;
-
-
-          localStorageService.remove('position');
+          position.latitude = location.coords.latitude;
+          position.longitude = location.coords.longitude;
+          position.altitude = location.coords.altitude;
           localStorageService.setObject('position', position);
 
-        },
-          function error(err) {
-
-            $ionicPopup.show({
-              template: '<p>This app uses your location to place you into nearby chatrooms. In order to use this app, grant permission to use your location.</p>',
-              title: "Location permission",
-              buttons: [
-                { text: 'Ok' },
-              ]
-            })
+        }, function error(err) {
+           PopupService.noGeoLocation();
           })
       }
 
@@ -67,6 +55,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
       if (authData) {
         var expiry = new Date(authData[".expires"])
         var now = new Date(Date.now())
+        console.log("Expiry is %s, now is %s", expiry, now);
         //If token hasn't expired yet
         if (expiry > now) {
           AuthService.authentication = authData;
@@ -185,6 +174,15 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services', '
           'tab-account': {
             templateUrl: 'templates/tab-account.html',
             controller: 'AccountController'
+          }
+        }
+      })
+      .state('tab.camera', {
+        url: '/account/camera',
+        views: {
+          'tab-account': {
+            templateUrl: 'templates/camera.html',
+            controller: 'CameraController'
           }
         }
       })

@@ -7,10 +7,11 @@ angular.module('starter.controllers', [])
     .controller('RoomController', RoomController)
     .controller('RoomSelectionController', RoomSelectionController)
     .controller('MapController', MapController)
-    .controller('AccountController', AccountController);
+    .controller('AccountController', AccountController)
+    .controller('CameraController', CameraController)
 
-LoginController.$inject = ['$scope', '$state', '$http', '$log', '$window', '$ionicHistory', '$ionicPopup', '$ionicLoading', '$q', 'Chats', 'ApiService', 'AuthService', 'localStorageService'];
-function LoginController($scope, $state, $http, $log, $window, $ionicHistory, $ionicPopup, $ionicLoading, $q, Chats, ApiService, AuthService, localStorageService) {
+LoginController.$inject = ['$scope', '$state', '$http', '$log', '$window', '$ionicHistory', '$ionicPopup', '$ionicLoading', '$q', 'Chats', 'RoomService', 'AuthService', 'localStorageService'];
+function LoginController($scope, $state, $http, $log, $window, $ionicHistory, $ionicPopup, $ionicLoading, $q, Chats, RoomService, AuthService, localStorageService) {
 
     $scope.user = {};
     $scope.loginData = {};
@@ -60,7 +61,7 @@ function LoginController($scope, $state, $http, $log, $window, $ionicHistory, $i
         //Returns the actual rooms object
         var def = $q.defer();
 
-        ApiService.getRooms(position)
+        RoomService.getRooms(position)
             .then(function (response) {
 
 
@@ -92,9 +93,9 @@ function RoomController(AuthService, Chats, $rootScope, $scope, $state, $statePa
         // console.log("Entered RoomController: roomTitle is ", $stateParams.roomTitle);
         $ionicNavBarDelegate.title($stateParams.roomTitle);
         Chats.connect($stateParams.roomId)
-            // .then(function () {
-            //     $scope.chats =
-            // })
+        // .then(function () {
+        //     $scope.chats =
+        // })
         $scope.chats = Chats.get($stateParams.roomId);
     })
 
@@ -126,12 +127,29 @@ function RoomController(AuthService, Chats, $rootScope, $scope, $state, $statePa
     };
 }
 
-RoomSelectionController.$inject = ['$scope', '$state', '$log', '$ionicHistory', '$ionicPopup', 'Chats', 'ApiService', 'AuthService', 'localStorageService', 'PopupService'];
-function RoomSelectionController($scope, $state, $log, $ionicHistory, $ionicPopup, Chats, ApiService, AuthService, localStorageService, PopupService) {
-
-    $scope.rooms = [];
+RoomSelectionController.$inject = ['$scope', '$state', '$log', '$ionicHistory', '$ionicModal', '$ionicPopup', 'Chats', 'RoomService', 'AuthService', 'localStorageService', 'PopupService'];
+function RoomSelectionController($scope, $state, $log, $ionicHistory, $ionicModal, $ionicPopup, Chats, RoomService, AuthService, localStorageService, PopupService) {
     var position;
-    $scope.radius;
+    $scope.rooms = [];
+    $scope.roomCreationData = {
+        radius: 250
+    };
+    $scope.searchRadius = 100;
+    $scope.creationRadiusFeet = 50;
+
+    $scope.createRoom = function (roomCreationData) {
+        console.log("In RoomSelectionController.createRoom, roomCreationData is ", roomCreationData);
+        RoomService.createRoom(roomCreationData)
+            .then(function (data) {
+
+                console.log("In RoomSelectionController, data came back is ", data)
+                PopupService.success();
+                $scope.closeModal();
+            }, function (err) {
+
+                PopupService.error(err);
+            })
+    }
 
     $scope.$on('$ionicView.enter', function (e) {
 
@@ -148,7 +166,7 @@ function RoomSelectionController($scope, $state, $log, $ionicHistory, $ionicPopu
 
         }
         //Get radius
-        $scope.radius = ApiService.getRadiusFeet()
+        $scope.radius = RoomService.getRadiusFeet()
 
         //Get position, catch errors
         try {
@@ -165,7 +183,7 @@ function RoomSelectionController($scope, $state, $log, $ionicHistory, $ionicPopu
             })
         }
 
-        ApiService.getRooms(position)
+        RoomService.getRooms(position)
             .then(function (response) {
                 $scope.rooms = response.data;
             }, function (err) {
@@ -184,21 +202,24 @@ function RoomSelectionController($scope, $state, $log, $ionicHistory, $ionicPopu
     //done moving the slider
     var timeoutId;
 
-    $scope.onInputChange = function (radiusFeet) {
-        ApiService.setRadiusMeters($scope.radius);
+    $scope.onInputChange = function (searchRadius) {
+        //Timeout stuff is to manage number of calls to server
+        //If not for this, every incremental change in slider would call service
         if (timeoutId) {
             window.clearTimeout(timeoutId)
         };
 
         timeoutId = setTimeout(function () {
-
-            ApiService.setRadiusMeters(radiusFeet);
-            ApiService.getRooms(position).then(function (response) {
+            RoomService.setRadiusMeters(searchRadius);
+            RoomService.getRooms(position).then(function (response) {
                 $scope.rooms = response.data;
             });
         }, 333)
     }
+    $scope.onRoomCreationRadius = function (creationRadiusFeet) {
+        $scope.roomCreationData.radius = creationRadiusFeet * .3048;
 
+    }
     $scope.goToRoom = function (roomId, roomTitle) {
         console.log("Calling goToRoom with pid", roomId);
         $state.go('tab.room', {
@@ -206,6 +227,32 @@ function RoomSelectionController($scope, $state, $log, $ionicHistory, $ionicPopu
             roomTitle: roomTitle
         })
     }
+
+    $ionicModal.fromTemplateUrl('add-room-modal.html', {
+        scope: $scope,
+        animation: 'slide-in-up'
+    }).then(function (modal) {
+        $scope.modal = modal;
+    });
+
+    $scope.openModal = function () {
+        $scope.modal.show();
+    };
+    $scope.closeModal = function () {
+        $scope.modal.hide();
+    };
+    // Cleanup the modal when we're done with it!
+    $scope.$on('$destroy', function () {
+        $scope.modal.remove();
+    });
+    // Execute action on hide modal
+    $scope.$on('modal.hidden', function () {
+        // Execute action
+    });
+    // Execute action on remove modal
+    $scope.$on('modal.removed', function () {
+        // Execute action
+    });
 }
 
 MapController.$inject = ['localStorageService', 'AuthService', '$scope', '$rootScope'];
@@ -220,8 +267,8 @@ function MapController(localStorageService, AuthService, $scope, $rootScope) {
         console.log('Updating map options');
         $scope.map = {
             center: {
-                latitude: position.Latitude || 39.859001,
-                longitude: position.Longitude || -97.906991
+                latitude: position.latitude || 39.859001,
+                longitude: position.longitude || -97.906991
             },
             zoom: (position) ? 12 : 2
         }
@@ -239,5 +286,31 @@ function AccountController(AuthService, $scope, PopupService) {
     $scope.logout = function () {
         AuthService.logOut();
         PopupService.logoutSuccess();
+    }
+}
+CameraController.$inject = ['$cordovaCamera', '$scope']
+function CameraController($cordovaCamera, $scope) {
+
+
+    $scope.takePicture = function () {
+        var options = {
+            quality: 75,
+            destinationType: Camera.DestinationType.DATA_URL,
+            sourceType: Camera.PictureSourceType.CAMERA,
+            allowEdit: true,
+            encodingType: Camera.EncodingType.JPEG,
+            targetWidth: 300,
+            targetHeight: 300,
+            //popoverOptions: CameraPopoverOptions,
+            saveToPhotoAlbum: false
+
+        }
+        console.log("taking picture");
+        $cordovaCamera.getPicture(options).then(function (imageData) {
+
+            $scope.imgSrc = "data:image/jpag;base64," + imageData;
+        }, function (err) {
+            alert("An error occured: " + err);
+        })
     }
 }

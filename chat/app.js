@@ -55,6 +55,7 @@ app.use(function (req, res, next) {
 });
 
 
+
 //Create a new io object of a given namespace,
 //listens for connections
 function createNewRoom(pid) {
@@ -62,9 +63,14 @@ function createNewRoom(pid) {
   nsp.on('connection', function (socket) {
     console.log('someone connected to ', pid)
 
+
     socket.on('chat message', function (msg) {
       console.log("received a message: ", msg);
       nsp.emit('chat message', msg);
+    })
+
+    socket.on('disconnect', function(){
+      console.log("somone disconnected")
     })
   })
 }
@@ -79,7 +85,7 @@ app.get('/create', function (req, res, next) {
   if (!req.query.pid) {
     res.status(400).end("Missing query param 'pid'.");
   } else {
-    console.log(req.query.pid);
+
 
     var found = false;
     //If we find a room, return 200
@@ -146,8 +152,19 @@ var server = http.createServer(app);
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
-
 var io = require('socket.io')(server);
+io.on('connection', function(socket) {
+  socket.on("join", function(data) {
+    console.log("Join event received. Data is ",data);
+    socket.join(data.room);
+  })
+  socket.on('chat message', function(data){
+    console.log("Received chat message event. Socket's rooms are ", socket.rooms);
+    console.log("Received chat message event. Data is ", data);
+    io.sockets.in(data.room).emit("chat message", {room: data.room, chat: data.chat});
+
+  })
+})
 
 /**
  * Event listener for HTTP server "error" event.

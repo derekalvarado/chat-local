@@ -52,6 +52,7 @@ angular.module('starter', ['ngCordova', 'ionic', 'starter.controllers', 'starter
       //Get authData when app starts up
       var authData = localStorageService.getObject('authData');
       console.log("authData is ", authData)
+
       if (authData) {
         var expiry = new Date(authData[".expires"])
         var now = new Date(Date.now())

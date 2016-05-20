@@ -374,7 +374,9 @@ angular.module('starter.services', [])
     .factory('PopupService', PopupService)
 
 PopupService.$inject = ['$ionicPopup'];
+
 function PopupService($ionicPopup) {
+
     return {
         error: error,
         unauthorized: unauthorized,

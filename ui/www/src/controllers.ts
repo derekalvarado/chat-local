@@ -87,7 +87,7 @@ RoomController.$inject = ['AuthService', 'Chats', '$rootScope', '$scope', '$stat
 function RoomController(AuthService, Chats, $rootScope, $scope, $state, $stateParams, $ionicNavBarDelegate) {
 
     $scope.chats = [];
-    var instance = 0;
+
     $scope.$on('$ionicView.enter', function (e) {
         // console.log("Entered RoomController: roomId is", $stateParams.roomId);
         // console.log("Entered RoomController: roomTitle is ", $stateParams.roomTitle);
@@ -97,6 +97,8 @@ function RoomController(AuthService, Chats, $rootScope, $scope, $state, $statePa
         //     $scope.chats =
         // })
         $scope.chats = Chats.get($stateParams.roomId);
+
+        $scope.roomId = $stateParams.roomId;
     })
 
     $rootScope.$on($stateParams.roomId, function (event, chats) {
@@ -125,6 +127,8 @@ function RoomController(AuthService, Chats, $rootScope, $scope, $state, $statePa
     $scope.remove = function (chat) {
         Chats.remove(chat);
     };
+
+
 }
 
 RoomSelectionController.$inject = ['$scope', '$state', '$log', '$ionicHistory', '$ionicModal', '$ionicPopup', 'Chats', 'RoomService', 'AuthService', 'localStorageService', 'PopupService'];
@@ -211,9 +215,19 @@ function RoomSelectionController($scope, $state, $log, $ionicHistory, $ionicModa
 
         timeoutId = setTimeout(function () {
             RoomService.setRadiusMeters(searchRadius);
-            RoomService.getRooms(position).then(function (response) {
-                $scope.rooms = response.data;
-            });
+            RoomService.getRooms(position)
+                .then(function (response) {
+                    $scope.rooms = response.data;
+                }, function (err) {
+                    if (err.status == 401) {
+                        PopupService.unauthorized();
+
+                        $ionicHistory.nextViewOptions({
+                            disableBack: true
+                        });
+                        $state.go("tab.login");
+                    }
+                });
         }, 333)
     }
     $scope.onRoomCreationRadius = function (creationRadiusFeet) {

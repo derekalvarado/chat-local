@@ -284,94 +284,125 @@ angular.module('starter.services', [])
             return deferred.promise
         }
     }])
-    .factory('Chats', ['Constants', '$http', '$q', '$rootScope', function (Constants, $http, $q, $rootScope) {
-
-        // Might use a resource here that returns a JSON array
-        //TODO: Get this connecting to a Socket.io namespace/room
-        var socket;
-        var currentId = 0;
-        var chats = {};
-        var socketManager = {};
-
-        return {
-            all: all,
-            connect: connect,
-            remove: remove,
-            get: get,
-            postMessage: postMessage
-        }
-
-        function all() {
-            return chats;
-        }
-
-        function connect(id) {
-            var def = $q.defer();
-            console.log("In Chats.connect: id is ", id);
-
-            if (id != currentId) {
-
-                currentId = id;
-            }
-
-            if (socketManager[id] && socketManager[id]["connected"]) {
-                console.log("In Chats.connect: socket already connected to correct namespace");
-                console.log("In Chats.connect: socket is ", socketManager[id]);
-                socket = socketManager[id];
-                $rootScope.$emit(id, chats);
-                return $q.when(socket);
-            } else {
-
-                socket = io.connect(Constants.ChatEndPoint);
-                socket.emit("join", { rooms: [id] });
-                chats[id] = [];
-                socket.on("connect", function () {
-                    console.log("Socket fired connect event!")
-                    socketManager[id] = socket;
-                    def.resolve();
-                })
-                socket.on("chat message", function (data) {
-                    console.log('CHAT SERVICE: Chat message received... ', data);
-                    chats[data.room].unshift(data.chat);
-                    $rootScope.$emit(id, chats[id]);
-                })
-
-                // chats = [];
-                // $rootScope.$emit('chats updated', chats);
-
-
-            }
-            return def.promise;
-        }
-        //This stopped working after I turned chats into an object
-        function remove(chat) {
-            //     chats.splice(chats.indexOf(chat), 1);
-        }
-
-        function get(id) {
-            return chats[id];
-        }
-
-        function postMessage(chat) {
-            if (socket) {
-
-                console.log("Chats: emitting message ", chat);
-                socket.emit('chat message', {
-                    room: currentId,
-                    chat: chat
-                });
-            } else {
-                throw new Error("No socket connected");
-            }
-
-        }
-    }])
+    .factory('Chats', Chats)
     .factory('googlemaps', ['', function () {
         return {
             none: "none"
         };
     }])
     .factory('PopupService', PopupService)
+
+Chats.$inject = ['Constants', '$http', '$q', '$rootScope', 'PopupService'];
+function Chats(Constants, $http, $q, $rootScope, PopupService) {
+    // Might use a resource here that returns a JSON array
+    //TODO: Get this connecting to a Socket.io namespace/room
+    var socket;
+    var currentId = 0;
+    var chats = {};
+    var socketManager = {};
+
+    return {
+        all: all,
+        connect: connect,
+        remove: remove,
+        get: get,
+        getUserCount: getUserCount,
+        postMessage: postMessage
+    }
+
+    function all() {
+        return chats;
+    }
+
+    function connect(id) {
+        var def = $q.defer();
+        console.log("In Chats.connect: id is ", id);
+
+        if (id != currentId) {
+
+            currentId = id;
+        }
+
+        if (socketManager[id] && socketManager[id]["connected"]) {
+            console.log("In Chats.connect: socket already connected to correct namespace");
+            console.log("In Chats.connect: socket is ", socketManager[id]);
+            socket = socketManager[id];
+            $rootScope.$emit(id, chats);
+            return $q.when(socket);
+        } else {
+
+            socket = io.connect(Constants.ChatEndPoint);
+            socket.emit("join", { room: id });
+            chats[id] = [];
+            socket.on("connect", function () {
+                console.log("Socket fired connect event!")
+                socketManager[id] = socket;
+                def.resolve();
+            })
+            socket.on("chat message", function (data) {
+                console.log('CHAT SERVICE: Chat message received... ', data);
+                chats[data.room].unshift(data.chat);
+                $rootScope.$emit(id, chats[id]);
+            })
+
+            // chats = [];
+            // $rootScope.$emit('chats updated', chats);
+
+
+        }
+        return def.promise;
+    }
+    //This stopped working after I turned chats into an object
+    function remove(chat) {
+        //     chats.splice(chats.indexOf(chat), 1);
+    }
+
+    function get(id) {
+        return chats[id];
+    }
+
+    function getUserCount(roomIds) {
+        console.log("In Chats.getUserCount. roomIds is ", roomIds);
+        var deferred = $q.defer();
+        var req = {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+
+            },
+            data: {
+                "roomIds": roomIds
+            },
+            url: Constants.ChatEndPoint + "connectedUsers"
+        }
+
+        $http(req).then(function (response) {
+            deferred.resolve(response);
+
+
+        }, function(err) {
+            PopupService.error(err);
+        })
+
+        return deferred.promise
+    }
+
+    function postMessage(chat) {
+        if (socket) {
+
+            console.log("Chats: emitting message ", chat);
+            socket.emit('chat message', {
+                room: currentId,
+                chat: chat
+            });
+        } else {
+            throw new Error("No socket connected");
+        }
+
+    }
+}
+
+
 
 PopupService.$inject = ['$ionicPopup'];
 

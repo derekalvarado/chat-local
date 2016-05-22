@@ -54,34 +54,19 @@ app.use(function (req, res, next) {
   next();
 });
 
-
-
-//Create a new io object of a given namespace,
-//listens for connections
-// function createNewRoom(pid) {
-//   var nsp = io.of('/' + pid);
-//   nsp.on('connection', function (socket) {
-//     console.log('someone connected to ', pid)
-
-
-//     socket.on('chat message', function (msg) {
-//       console.log("received a message: ", msg);
-//       nsp.emit('chat message', msg);
-//     })
-
-//     socket.on('disconnect', function(){
-//       console.log("somone disconnected")
-//     })
-//   })
-// }
-
+app.options('*', function(req, res, next) {
+  res.status(200).end();
+})
 app.get('/', function (req, res) {
   res.status(200).end("Up and running");
 });
 
-app.get("/connectedUsers", function (req, res, next) {
+app.post("/connectedUsers", function (req, res, next) {
+  console.log("connectedUsers requested");
+  console.log(connectedUsers);
   res.send(JSON.stringify(connectedUsers))
 })
+
 
 
 // catch 404 and forward to error handler
@@ -122,12 +107,6 @@ var connectedUsers = {};
 var server = http.createServer(app);
 var io = require('socket.io')(server);
 
-//Create a client to talk to other socket servers
-if (remotePort) {
-  var remoteSocketServer = io_client("http://localhost:" + remotePort);
-}
-
-
 //Handle incoming events here
 io.on('connection', function (socket) {
 
@@ -141,26 +120,11 @@ io.on('connection', function (socket) {
       connectedUsers[data.room] = 1;
     }
     socket.join(data.room);
-
-    //Relay the join to the other socket server
-    if (remoteSocketServer) {
-      remoteSocketServer.emit("join", data);
-    }
   })
 
   socket.on('chat message', function (data) {
-    console.log("Received chat message event. Socket's rooms are ", socket.rooms);
     console.log("Received chat message event. Data is ", data);
     io.sockets.in(data.room).emit("chat message", { room: data.room, chat: data.chat });
-    if (remoteSocketServer) {
-      remoteSocketServer.emit("chat message", { room: data.room, chat: data.chat });
-    }
-  })
-
-  //Update other servers with new connected user count
-
-  socket.on("peer:connectedUsers", function (data) {
-    console.log(data);
   })
 })
 

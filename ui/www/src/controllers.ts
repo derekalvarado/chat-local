@@ -128,12 +128,11 @@ function RoomController(AuthService, Chats, $rootScope, $scope, $state, $statePa
         Chats.remove(chat);
     };
 
-<<<<<<< HEAD
+
 
 }
 
-=======
->>>>>>> 4ac338fa3f33fe5beac914c8fd683ae21cf757cf
+
 RoomSelectionController.$inject = ['$scope', '$state', '$log', '$ionicHistory', '$ionicModal', '$ionicPopup', 'Chats', 'RoomService', 'AuthService', 'localStorageService', 'PopupService'];
 function RoomSelectionController($scope, $state, $log, $ionicHistory, $ionicModal, $ionicPopup, Chats, RoomService, AuthService, localStorageService, PopupService) {
     var position;
@@ -193,6 +192,20 @@ function RoomSelectionController($scope, $state, $log, $ionicHistory, $ionicModa
         RoomService.getRooms(position)
             .then(function (response) {
                 $scope.rooms = response.data;
+                var roomHashHelper = {};
+                var roomIds = []
+                response["data"].forEach(function(val, idx, arr) {
+                    roomIds.push(val.Id);
+                    roomHashHelper[val.Id] = val;
+                })
+                Chats.getUserCount(roomIds)
+                    .then(function(response) {
+                        debugger;
+                        for (var key in response.data) {
+                            roomHashHelper[key]["UserCount"] = response.data[key] || 0;
+                        }
+
+                    });
             }, function (err) {
                 console.log(err);
                 if (err.status == 401) {
@@ -203,6 +216,7 @@ function RoomSelectionController($scope, $state, $log, $ionicHistory, $ionicModa
                 });
                 $state.go("tab.login");
             })
+
     });
 
     //Call the API with new radius after the user is

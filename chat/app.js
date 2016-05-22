@@ -1,25 +1,27 @@
 var express = require('express'),
-    debug = require('debug')('projectx:server'),
-    path = require('path'),
-    favicon = require('serve-favicon'),
-    http = require('http'),
-    logger = require('morgan'),
-    cookieParser = require('cookie-parser'),
-    bodyParser = require('body-parser'),
-    io = require('socket.io')(),
+  debug = require('debug')('projectx:server'),
+  path = require('path'),
+  favicon = require('serve-favicon'),
+  http = require('http'),
+  logger = require('morgan'),
+  cookieParser = require('cookie-parser'),
+  bodyParser = require('body-parser'),
 
-    app = express(),
-    routes = require('./routes/index'),
-    users = require('./routes/users'),
-    chat = require('./routes/chat');
+  io_client = require('socket.io-client');
+app = express(),
+  routes = require('./routes/index'),
+  users = require('./routes/users'),
+  chat = require('./routes/chat');
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
 // port setup
-var port = normalizePort(process.env.PORT || '3000');
+var port = normalizePort(process.argv[2]);
+var remotePort = normalizePort(process.argv[3])
 app.set('port', port);
+app.set('remotePort', remotePort);
 
 /**
  * Normalize a port into a number, string, or false.
@@ -77,39 +79,10 @@ app.get('/', function (req, res) {
   res.status(200).end("Up and running");
 });
 
-var pids = [];
-//Creates a room if it doesn't already exist
-// app.get('/create', function (req, res, next) {
-//   if (!req.query.pid) {
-//     res.status(400).end("Missing query param 'pid'.");
-//   } else {
+app.get("/connectedUsers", function (req, res, next) {
+  res.send(JSON.stringify(connectedUsers))
+})
 
-
-//     var found = false;
-//     //If we find a room, return 200
-//     for (var i = 0; i < pids.length; i++) {
-//       if (pids[i].pid == req.query.pid) {
-//         console.log("Found pre-existing pid");
-//         pids[i].users++;
-//         found = true;
-//         res.status(200).end();
-//         break;
-//       }
-//     }
-
-//     //If we didn't find an existing room, create one, return 201
-//     if (!found) {
-//       console.log("Creating new room and pid")
-//       createNewRoom(req.query.pid);
-//       var newPid = {
-//         pid: req.query.pid,
-//         users: 1
-//       };
-//       pids.push(newPid);
-//       res.status(201).end();
-//     }
-//   }
-// })
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -148,22 +121,46 @@ var connectedUsers = {};
 //Server setup
 var server = http.createServer(app);
 var io = require('socket.io')(server);
-io.on('connection', function(socket) {
-  socket.on("join", function(data) {
-    console.log("Join event received. Data is ",data);
+
+//Create a client to talk to other socket servers
+if (remotePort) {
+  var remoteSocketServer = io_client("http://localhost:" + remotePort);
+}
+
+
+//Handle incoming events here
+io.on('connection', function (socket) {
+
+  console.log("connection event fired");
+  socket.on("join", function (data) {
+    console.log("Join event received. Data is ", data);
+
     if (connectedUsers[data.room]) {
       connectedUsers[data.room]++;
-    }  else {
-      connectedUsers[data.room] = 1
+    } else {
+      connectedUsers[data.room] = 1;
     }
-
     socket.join(data.room);
+
+    //Relay the join to the other socket server
+    if (remoteSocketServer) {
+      remoteSocketServer.emit("join", data);
+    }
   })
-  socket.on('chat message', function(data){
+
+  socket.on('chat message', function (data) {
     console.log("Received chat message event. Socket's rooms are ", socket.rooms);
     console.log("Received chat message event. Data is ", data);
-    io.sockets.in(data.room).emit("chat message", {room: data.room, chat: data.chat});
+    io.sockets.in(data.room).emit("chat message", { room: data.room, chat: data.chat });
+    if (remoteSocketServer) {
+      remoteSocketServer.emit("chat message", { room: data.room, chat: data.chat });
+    }
+  })
 
+  //Update other servers with new connected user count
+
+  socket.on("peer:connectedUsers", function (data) {
+    console.log(data);
   })
 })
 

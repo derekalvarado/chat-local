@@ -323,7 +323,7 @@ angular.module('starter.services', [])
             } else {
 
                 socket = io.connect(Constants.ChatEndPoint);
-                socket.emit("join", { room: id });
+                socket.emit("join", { rooms: [id] });
                 chats[id] = [];
                 socket.on("connect", function () {
                     console.log("Socket fired connect event!")

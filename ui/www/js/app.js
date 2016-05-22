@@ -760,8 +760,10 @@ function RoomSelectionController($scope, $state, $log, $ionicHistory, $ionicModa
         ;
         timeoutId = setTimeout(function () {
             RoomService.setRadiusMeters(searchRadius);
+
             RoomService.getRooms(position)
                 .then(function (response) {
+
                 $scope.rooms = response.data;
             }, function (err) {
                 if (err.status == 401) {

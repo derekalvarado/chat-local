@@ -128,9 +128,12 @@ function RoomController(AuthService, Chats, $rootScope, $scope, $state, $statePa
         Chats.remove(chat);
     };
 
+<<<<<<< HEAD
 
 }
 
+=======
+>>>>>>> 4ac338fa3f33fe5beac914c8fd683ae21cf757cf
 RoomSelectionController.$inject = ['$scope', '$state', '$log', '$ionicHistory', '$ionicModal', '$ionicPopup', 'Chats', 'RoomService', 'AuthService', 'localStorageService', 'PopupService'];
 function RoomSelectionController($scope, $state, $log, $ionicHistory, $ionicModal, $ionicPopup, Chats, RoomService, AuthService, localStorageService, PopupService) {
     var position;
@@ -215,6 +218,7 @@ function RoomSelectionController($scope, $state, $log, $ionicHistory, $ionicModa
 
         timeoutId = setTimeout(function () {
             RoomService.setRadiusMeters(searchRadius);
+
             RoomService.getRooms(position)
                 .then(function (response) {
                     $scope.rooms = response.data;
@@ -228,6 +232,7 @@ function RoomSelectionController($scope, $state, $log, $ionicHistory, $ionicModa
                         $state.go("tab.login");
                     }
                 });
+
         }, 333)
     }
     $scope.onRoomCreationRadius = function (creationRadiusFeet) {

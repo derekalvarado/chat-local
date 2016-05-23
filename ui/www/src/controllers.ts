@@ -87,25 +87,27 @@ RoomController.$inject = ['AuthService', 'Chats', '$rootScope', '$scope', '$stat
 function RoomController(AuthService, Chats, $rootScope, $scope, $state, $stateParams, $ionicNavBarDelegate) {
 
     $scope.chats = [];
-
+    console.log("RoomController: $scope.chats is ", $scope.chats);
     $scope.$on('$ionicView.enter', function (e) {
         // console.log("Entered RoomController: roomId is", $stateParams.roomId);
         // console.log("Entered RoomController: roomTitle is ", $stateParams.roomTitle);
         $ionicNavBarDelegate.title($stateParams.roomTitle);
         Chats.connect($stateParams.roomId)
-        // .then(function () {
-        //     $scope.chats =
-        // })
-        $scope.chats = Chats.get($stateParams.roomId);
+            .then(function () {
+                $scope.chats = Chats.get($stateParams.roomId);
+                console.log("RoomController: $scope.chats after calling Chats.get ", $scope.chats);
+            })
+
 
         $scope.roomId = $stateParams.roomId;
     })
 
-    $rootScope.$on($stateParams.roomId, function (event, chats) {
+    $rootScope.$on($stateParams.roomId, function (event, chat) {
+        //debugger;
         // console.log('RoomController: chats update event heard from instance ', instance);
         // console.log("RoomController: new data is ", chats);
 
-        $scope.chats = chats;
+        $scope.chats = Chats.get($scope.roomId);
         $scope.$apply();
     });
 
@@ -194,13 +196,12 @@ function RoomSelectionController($scope, $state, $log, $ionicHistory, $ionicModa
                 $scope.rooms = response.data;
                 var roomHashHelper = {};
                 var roomIds = []
-                response["data"].forEach(function(val, idx, arr) {
+                response["data"].forEach(function (val, idx, arr) {
                     roomIds.push(val.Id);
                     roomHashHelper[val.Id] = val;
                 })
                 Chats.getUserCount(roomIds)
-                    .then(function(response) {
-                        debugger;
+                    .then(function (response) {
                         for (var key in response.data) {
                             roomHashHelper[key]["UserCount"] = response.data[key] || 0;
                         }

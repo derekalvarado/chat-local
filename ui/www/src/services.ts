@@ -301,6 +301,18 @@ function Chats(Constants, $http, $q, $rootScope, PopupService) {
     var chats = {};
     var socketManager = {};
 
+    socket = io.connect(Constants.ChatEndPoint);
+
+    socket.on("chat message", function (data) {
+        debugger;
+        console.log('CHAT SERVICE: Chat message received... ', data);
+        if (!chats[data.room]) {
+            chats[data.room] = [];
+        }
+        chats[data.room].unshift(data.chat);
+        $rootScope.$emit(data.room, data.chat);
+    })
+
     return {
         all: all,
         connect: connect,
@@ -318,38 +330,14 @@ function Chats(Constants, $http, $q, $rootScope, PopupService) {
         var def = $q.defer();
         console.log("In Chats.connect: id is ", id);
 
-        if (id != currentId) {
-
+        if (socket && socket.connected) {
+            socket.emit("join", { room: id });
             currentId = id;
-        }
-
-        if (socketManager[id] && socketManager[id]["connected"]) {
-            console.log("In Chats.connect: socket already connected to correct namespace");
-            console.log("In Chats.connect: socket is ", socketManager[id]);
-            socket = socketManager[id];
-            $rootScope.$emit(id, chats);
             return $q.when(socket);
         } else {
-
-            socket = io.connect(Constants.ChatEndPoint);
-            socket.emit("join", { room: id });
-            chats[id] = [];
-            socket.on("connect", function () {
-                console.log("Socket fired connect event!")
-                socketManager[id] = socket;
-                def.resolve();
-            })
-            socket.on("chat message", function (data) {
-                console.log('CHAT SERVICE: Chat message received... ', data);
-                chats[data.room].unshift(data.chat);
-                $rootScope.$emit(id, chats[id]);
-            })
-
-            // chats = [];
-            // $rootScope.$emit('chats updated', chats);
-
-
+            def.reject("Socket not connected");
         }
+
         return def.promise;
     }
     //This stopped working after I turned chats into an object
@@ -358,7 +346,7 @@ function Chats(Constants, $http, $q, $rootScope, PopupService) {
     }
 
     function get(id) {
-        return chats[id];
+        return chats[id] === undefined ? [] : chats[id];
     }
 
     function getUserCount(roomIds) {
@@ -380,7 +368,7 @@ function Chats(Constants, $http, $q, $rootScope, PopupService) {
             deferred.resolve(response);
 
 
-        }, function(err) {
+        }, function (err) {
             PopupService.error(err);
         })
 
@@ -391,10 +379,15 @@ function Chats(Constants, $http, $q, $rootScope, PopupService) {
         if (socket) {
 
             console.log("Chats: emitting message ", chat);
-            socket.emit('chat message', {
-                room: currentId,
-                chat: chat
-            });
+            try {
+                socket.emit('chat message', {
+                    room: currentId,
+                    chat: chat
+                });
+            } catch (e) {
+                console.log("postmessage error: ", e);
+            }
+
         } else {
             throw new Error("No socket connected");
         }

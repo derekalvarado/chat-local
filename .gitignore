@@ -1,2 +1,6 @@
 ui/*.log
 chat/node_modules/*
+ui/www/js/
+ui/node_modules/
+ui/plugins/*
+ui/platforms

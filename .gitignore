@@ -1,1 +1,11 @@
 ui/*.log
+chat/node_modules/*
+ui/www/js/
+ui/node_modules/
+ui/plugins/*
+ui/platforms
+# Specifies intentionally untracked files to ignore when using Git
+# http://git-scm.com/docs/gitignore
+
+ui/.jsbeautifyrc
+ui/.vscode

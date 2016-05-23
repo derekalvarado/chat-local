@@ -17,10 +17,18 @@ module.exports = function(config) {
     files: [
 
       'www/lib/ionic/js/ionic.bundle.js',
+      //'www/lib/angular-simple-logger/dist/angular-simple-logger.min.js',
       'www/lib/ngCordova/dist/ng-cordova.min.js',
-      'www/lib/ngCordova/dist/ng-cordova-mocks.js',
+      'www/lib/ngCordova/dist/ng-cordova-mocks.js', 
       'www/lib/angular/angular-mocks.js',
+      'www/lib/lodash/dist/lodash.min.js',
+      'www/lib/angular-simple-logger/dist/angular-simple-logger.min.js',
+      'https://maps.googleapis.com/maps/api/js?sensor=false',
+      'www/lib/angular-google-maps/dist/angular-google-maps.min.js',
       'www/js/*.js',
+
+     
+      
       'spec/*.js'
     ],
 

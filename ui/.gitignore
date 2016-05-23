@@ -6,4 +6,4 @@ platforms/
 plugins/
 .jsbeautifyrc
 .vscode
-www/js/*.map
+www/js/

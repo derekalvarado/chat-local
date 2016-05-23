@@ -54,17 +54,7 @@ angular.module('starter', ['ngCordova', 'ionic', 'starter.controllers', 'starter
       console.log("authData is ", authData)
 
       if (authData) {
-        var expiry = new Date(authData[".expires"])
-        var now = new Date(Date.now())
-        console.log("Expiry is %s, now is %s", expiry, now);
-        //If token hasn't expired yet
-        if (expiry > now) {
-          AuthService.authentication = authData;
-        } else {
-          //console.log("Token expired, removing auth data");
-          //Remove all authData
-          AuthService.logOut();
-        }
+        AuthService.authentication = authData;
       }
 
 

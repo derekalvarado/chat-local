@@ -18,10 +18,13 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
 // port setup
-var port = normalizePort(process.argv[2]);
+var port = normalizePort(process.argv[2] || 3000);
 var remotePort = normalizePort(process.argv[3])
 app.set('port', port);
-app.set('remotePort', remotePort);
+if (remotePort) {
+  app.set('remotePort', remotePort);
+}
+
 
 /**
  * Normalize a port into a number, string, or false.
@@ -54,7 +57,7 @@ app.use(function (req, res, next) {
   next();
 });
 
-app.options('*', function(req, res, next) {
+app.options('*', function (req, res, next) {
   res.status(200).end();
 })
 app.get('/', function (req, res) {
@@ -107,26 +110,47 @@ var connectedUsers = {};
 var server = http.createServer(app);
 var io = require('socket.io')(server);
 
+var manager = {};
 //Handle incoming events here
 io.on('connection', function (socket) {
-
+  var joinedRooms = [];
   console.log("connection event fired");
   socket.on("join", function (data) {
     console.log("Join event received. Data is ", data);
 
-    if (connectedUsers[data.room]) {
-      connectedUsers[data.room]++;
+    //Join this socket to data.room, only if not already joined
+    if (!socket.rooms.hasOwnProperty(data.room)) {
+      socket.join(data.room);
+
+      if (connectedUsers[data.room]) {
+        connectedUsers[data.room]++;
+      } else {
+        connectedUsers[data.room] = 1;
+      }
+      joinedRooms.push(data.room);
+      console.log(socket.rooms);
     } else {
-      connectedUsers[data.room] = 1;
+      console.log("Socket " + socket.id + " already connected to room " + data.room);
     }
-    socket.join(data.room);
+
   })
 
   socket.on('chat message', function (data) {
     console.log("Received chat message event. Data is ", data);
     io.sockets.in(data.room).emit("chat message", { room: data.room, chat: data.chat });
   })
+
+  socket.on("disconnect", function () {
+    console.log("Got disconnect event");
+    console.log("Decrementing these rooms ", joinedRooms);
+
+    joinedRooms.forEach((val, idx, arr) => {
+      connectedUsers[val]--;
+    })
+
+  })
 })
+
 
 server.listen(port);
 server.on('error', onError);

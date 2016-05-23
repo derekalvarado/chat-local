@@ -3,10 +3,11 @@ describe('AuthService', function() {
 
     var AuthService, localStorageService, ApiEndPoint, $httpBackend;
 
-    beforeEach(inject(function($injector) {
+    beforeEach(inject(function($injector, _$httpBackend_) {
+        
         AuthService = $injector.get('AuthService');
         ApiEndPoint = $injector.get('ApiEndPoint');
-        $httpBackend = $injector.get('$httpBackend');
+        $httpBackend = _$httpBackend_;
         
         $httpBackend.when('GET', /.*\.html/).respond(200);
     }));
@@ -21,7 +22,7 @@ describe('AuthService', function() {
     };
 
     it("should set AuthService.authentication.isAuth === true", function() {
-
+        
         var testCredentials = {
             "Email": "d@d.com",
             "Password": "password1"

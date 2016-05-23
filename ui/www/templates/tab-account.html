@@ -2,9 +2,8 @@
   <ion-content>
   	<ion-nav-view name="account-login"></ion-nav-view>
     <ion-list>
-	    <ion-toggle  ng-model="settings.enableFriends">
-	        Enable Friends
-	    </ion-toggle>
+      <ion-item class="ion-camera" ui-sref="tab.camera" ng-click="takePicture()">Take picture</ion-item>
+<ion-item>      <button href="" class="button button-block button-assertive" ng-click="logout()">Logout</button></ion-item>
     <ion-list>
 
     </ion-list>

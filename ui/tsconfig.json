@@ -1,0 +1,14 @@
+{
+  "compileOnSave": true,
+  "compilerOptions": {
+    "target": "es5",
+    "outFile": "www/js/app.js",
+    "sourceMap": true,
+    "watch": true
+  },
+  "files": [
+    "www/src/app.ts",
+    "www/src/services.ts",
+    "www/src/controllers.ts"
+  ]
+}
